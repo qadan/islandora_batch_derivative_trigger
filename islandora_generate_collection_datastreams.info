@@ -1,0 +1,11 @@
+name = Islandora Generate/Regenerate Collection Datastreams
+description = "Adds basic collection management options to generate or regenerate per-content-model derivative and metadata datastreams for collection objects."
+package = Islandora Tools
+dependencies[] = islandora
+dependencies[] = islandora_basic_collection
+dependencies[] = xml_form_builder
+files[] = includes/forms.inc
+files[] = includes/batch.inc
+files[] = includes/utilities.inc
+version = 7.x-1.0
+core = 7.x
