@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Datastream regeneration utilities.
  */

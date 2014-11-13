@@ -1,11 +1,10 @@
 <?php
-
 /**
  * Module allowing for the collection-wide regeneration of datastreams.
  */
 
 /**
- *  Implements hook_islandora_basic_collection_build_manage_object().
+ * Implements hook_islandora_basic_collection_build_manage_object().
  */
 function islandora_generate_collection_datastreams_islandora_basic_collection_build_manage_object($form_state, $object) {
   $form_state['manage_collection_object']['regenerate_derivatives'] = array(
@@ -46,7 +45,6 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_form(a
   $form_state['collection'] = $collection;
   $content_models = islandora_basic_collection_get_content_models_as_form_options(islandora_generate_collection_datastreams_get_child_content_models($collection));
   $content_model = islandora_generate_collection_datastreams_get_current_content_model($collection, $form_state);
-  dd($form_state);
   $form = array(
     'regenerate_derivatives_wrapper' => array(
       '#action' => request_uri() . "#regenerate-derivatives",

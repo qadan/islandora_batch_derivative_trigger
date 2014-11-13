@@ -1,10 +1,9 @@
 <?php
-
-require_once drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc';
-
 /**
  * Batch functions for regenerating derivatives and metadata.
  */
+
+require_once drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc';
 
 /**
  * A batch 'finished' callback for derivative regeneration that includes logs.
