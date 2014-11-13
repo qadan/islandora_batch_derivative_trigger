@@ -1,5 +1,6 @@
 <?php
 /**
+ * @file
  * Datastream regeneration utilities.
  */
 

@@ -1,5 +1,6 @@
 <?php
 /**
+ * @file
  * Module allowing for the collection-wide regeneration of datastreams.
  */
 
@@ -357,4 +358,3 @@ function islandora_generate_collection_datastreams_regenerate_metadata_form_subm
   $batch = islandora_generate_collection_datastreams_regenerate_metadata_batch($children, $form_state['values']['mapping'], $collection, $form_state['values']['content_model']);
   batch_set($batch);
 }
-

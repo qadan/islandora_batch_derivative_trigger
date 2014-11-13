@@ -1,5 +1,6 @@
 <?php
 /**
+ * @file
  * Batch functions for regenerating derivatives and metadata.
  */
 
