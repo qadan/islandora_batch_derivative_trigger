@@ -1,8 +1,8 @@
-# Islandora Generate/Regenrate Collection Datastreams [![Build Status](https://travis-ci.org/qadan/islandora_generate_collection_datastreams.png?branch=7.x)](https://travis-ci.org/qadan/islandora_generate_collection_datastreams)
+# Islandora Generate/Regenrate Collection derivatives [![Build Status](https://travis-ci.org/qadan/islandora_generate_collection_derivatives.png?branch=7.x)](https://travis-ci.org/qadan/islandora_generate_collection_derivatives)
 
 ## Introduction
 
-The Islandora Generate/Regenrate Collection Datastreams module adds two new fieldsets to collection management pages.
+The Islandora Generate/Regenrate Collection Derivatives module adds two new fieldsets to collection management pages.
 
 The first allows you to generate or regenerate any and all available derivative datastreams on selected or all objects in a collection. The list of available derivative datastreams is generated per-content-model, and the fieldset allows for the selection of which content model to process derivative generation for. The list is generated from hook_islandora_derivative(), so installing other modules that implement this hook allows one to retroatively apply that derivative generation to objects in the collection.
 
@@ -10,7 +10,7 @@ The second allows you to regenerate the DC datastream for selected or all object
 
 ## Requirements
 
-Islandora Generate/Regenerate Collection Datastreams is dependent on the following modules:
+Islandora Generate/Regenerate Collection Derivatives is dependent on the following modules:
 
 - Islandora
 - Islandora XML Form Builder
