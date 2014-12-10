@@ -301,9 +301,8 @@ function islandora_generate_collection_datastreams_regenerate_metadata_get_dc_xs
     }
   }
   else {
-    $associations = module_invoke_all('islandora_xml_form_builder_form_associations');
-    // @TODO: This is supposed to be deprecated eventually.
-    $associations += module_invoke_all('islandora_content_model_forms_form_associations');
+    module_load_include('inc', 'xml_form_builder', 'includes/associations');
+    $associations = xml_form_builder_get_associations(array(), array($content_model));
     foreach ($associations as $association) {
       if ($association['content_model'] === $content_model) {
         $xslts["{$association['transform']}:{$association['dsid']}"] = "{$association['transform']} - {$association['dsid']}";
