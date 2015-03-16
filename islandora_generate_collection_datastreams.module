@@ -42,6 +42,7 @@ function islandora_generate_collection_datastreams_islandora_basic_collection_bu
  */
 function islandora_generate_collection_datastreams_regenerate_derivatives_form(array $form, array &$form_state, AbstractObject $collection) {
   module_load_include('inc', 'islandora_basic_collection', 'includes/utilities');
+  module_load_include('inc', 'islandora_basic_collection', 'includes/manage_collection');
   module_load_include('inc', 'islandora_generate_collection_datastreams', 'includes/utilities');
   $form_state['collection'] = $collection;
   $content_models = islandora_basic_collection_get_content_models_as_form_options(islandora_generate_collection_datastreams_get_child_content_models($collection));
@@ -73,7 +74,7 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_form(a
         '#empty' => t('No derivative DSIDs for the selected content model.'),
       ),
       'children' => islandora_generate_collection_datastreams_get_children_select_table_form_element_with_content_model($collection, array(
-        'element' => 3,
+        'element' => islandora_basic_collection_get_current_pager_index(),
         'fragment' => '#regenerate-derivatives',
       ), $content_model),
       'submit' => array(
@@ -222,6 +223,7 @@ function islandora_generate_collection_datastreams_regenerate_metadata_form(arra
   module_load_include('inc', 'islandora_basic_collection', 'includes/utilities');
   module_load_include('inc', 'islandora_generate_collection_datastreams', 'includes/utilities');
   module_load_include('inc', 'xml_form_builder', 'includes/db');
+  module_load_include('inc', 'islandora_basic_collection', 'includes/manage_collection');
   $form_state['collection'] = $collection;
   $content_models = islandora_basic_collection_get_content_models_as_form_options(islandora_generate_collection_datastreams_get_child_content_models($collection));
   $content_model = islandora_generate_collection_datastreams_get_current_content_model($collection, $form_state);
@@ -249,7 +251,7 @@ function islandora_generate_collection_datastreams_regenerate_metadata_form(arra
         '#options' => islandora_generate_collection_datastreams_regenerate_metadata_get_dc_xslts($content_model),
       ),
       'children' => islandora_generate_collection_datastreams_get_children_select_table_form_element_with_content_model($collection, array(
-        'element' => 4,
+        'element' => islandora_basic_collection_get_current_pager_index(),
         'fragment' => '#regenerate-metadata',
       ), $content_model),
       'submit' => array(
