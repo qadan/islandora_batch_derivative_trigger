@@ -74,7 +74,7 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_form(a
         '#empty' => t('No derivative DSIDs for the selected content model.'),
       ),
       'children' => islandora_generate_collection_datastreams_get_children_select_table_form_element_with_content_model($collection, array(
-        'element' => islandora_basic_collection_get_current_pager_index(),
+        'element' => 3,
         'fragment' => '#regenerate-derivatives',
       ), $content_model),
       'submit' => array(
@@ -251,7 +251,7 @@ function islandora_generate_collection_datastreams_regenerate_metadata_form(arra
         '#options' => islandora_generate_collection_datastreams_regenerate_metadata_get_dc_xslts($content_model),
       ),
       'children' => islandora_generate_collection_datastreams_get_children_select_table_form_element_with_content_model($collection, array(
-        'element' => islandora_basic_collection_get_current_pager_index(),
+        'element' => 4,
         'fragment' => '#regenerate-metadata',
       ), $content_model),
       'submit' => array(
