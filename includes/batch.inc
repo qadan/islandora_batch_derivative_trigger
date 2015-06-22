@@ -39,7 +39,7 @@ function islandora_generate_collection_datastreams_derivative_regeneration_batch
  * @return array
  *   A Drupal batch array.
  */
-function islandora_generate_collection_datastreams_regenerate_derivatives_batch($children, $dsids, AbstractObject $collection, $content_model) {
+function islandora_generate_collection_datastreams_regenerate_derivatives_batch($children, $dsids, AbstractObject $collection, $content_model, $force = TRUE) {
   $batch = array(
     'finished' => 'islandora_generate_collection_datastreams_derivative_regeneration_batch_finished',
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
@@ -60,7 +60,7 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_batch(
     foreach ($children as $child) {
       $batch['operations'][] = array(
         'islandora_generate_collection_datastreams_regenerate_derivatives_batch_operation',
-        array($child, $dsids),
+        array($child, $dsids, $force),
       );
     }
   }
@@ -89,7 +89,7 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_batch(
  * @param array $context
  *   The batch context.
  */
-function islandora_generate_collection_datastreams_regenerate_derivatives_batch_operation($child, array $dsids, &$context) {
+function islandora_generate_collection_datastreams_regenerate_derivatives_batch_operation($child, array $dsids, $force, &$context) {
   module_load_include('inc', 'islandora', 'includes/derivatives');
   if (!isset($context['sandbox']['progress'])) {
     $context['sandbox']['progress'] = 0;
@@ -99,7 +99,7 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_batch_
   if ($child) {
     foreach ($dsids as $dsid) {
       $context['results'][] = islandora_do_derivatives($child, array(
-        'force' => TRUE,
+        'force' => $force,
         'destination_dsid' => $dsid,
       ));
       $context['sandbox']['progress']++;
