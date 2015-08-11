@@ -34,7 +34,7 @@ function islandora_generate_collection_datastreams_drush_command() {
       ),
       'examples' => array(
         'Regenerate all derivatives for specified objects' => 'drush deriv-regen --pids=islandora:1,islandora:2,islandora:3',
-        'Regenerate collection derivatives for the specifid content model and DSID' => 'drush dr --collection=sample:collection --content_model=sample:CModel --dsids=DSID,DSID2'
+        'Regenerate collection derivatives for the specifid content model and DSID' => 'drush dr --collection=sample:collection --content_model=sample:CModel --dsids=DSID,DSID2',
       ),
     ),
     'islandora-generate-collection-datastreams-regenerate-metadata' => array(
@@ -85,6 +85,9 @@ function drush_islandora_generate_collection_datastreams_regenerate_derivatives(
   drush_backend_batch_process();
 }
 
+/**
+ * Drush command for metadata regeneration.
+ */
 function drush_islandora_generate_collection_datastreams_regenerate_metadata() {
 }
 

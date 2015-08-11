@@ -150,8 +150,7 @@ function islandora_generate_collection_datastreams_regenerate_all_derivatives_ba
               foreach ($message_sub as $sub => $value) {
                 $return = str_replace($sub, $value, $return);
               }
-                $context['message'] = $return;
-              }
+              $context['message'] = $return;
             }
           }
         }
