@@ -138,12 +138,23 @@ function islandora_generate_collection_datastreams_regenerate_all_derivatives_ba
       $child = $result['object']['value'];
       if ($child && $child = islandora_object_load($child)) {
         foreach ($dsids as $dsid) {
-          $context['results'][] = islandora_do_derivatives($child, array(
+          $logs = islandora_do_derivatives($child, array(
             'force' => TRUE,
             'destination_dsid' => $dsid,
           ));
-          $context['sandbox']['current']++;
+          $context['results'][] = $logs;
+          foreach ((array) $logs as $log) {
+            if ($log[0]['message']) {
+              $message = $log[0]['message'];
+              $message_sub = isset($log[0]['message_sub']) ? $log[0]['message_sub'] : array();
+              foreach ($message_sub as $sub => $value) {
+                $message = str_replace($sub, $value, $message);
+              }
+              $context['message'] = $message;
+            }
+          }
         }
+        $context['sandbox']['current']++;
       }
     }
   }
