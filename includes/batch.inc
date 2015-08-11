@@ -126,7 +126,7 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_batch_
  */
 function islandora_generate_collection_datastreams_regenerate_all_derivatives_batch_operation(array $dsids, AbstractObject $collection, $content_model, &$context) {
   module_load_include('inc', 'islandora', 'includes/derivatives');
-  $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 10, 'manage', $content_model);
+  $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 1, 'manage', $content_model);
   $context['sandbox']['page']++;
   if ($results) {
     list ($count, $members) = $results;
@@ -144,13 +144,14 @@ function islandora_generate_collection_datastreams_regenerate_all_derivatives_ba
           ));
           $context['results'][] = $logs;
           foreach ((array) $logs as $log) {
-            if ($log[0]['message']) {
-              $message = $log[0]['message'];
-              $message_sub = isset($log[0]['message_sub']) ? $log[0]['message_sub'] : array();
+            foreach ($log['messages'] as $message) {
+              $return = $message['message'];
+              $message_sub = isset($message['message_sub']) ? $message['message_sub'] : array();
               foreach ($message_sub as $sub => $value) {
-                $message = str_replace($sub, $value, $message);
+                $return = str_replace($sub, $value, $return);
               }
-              $context['message'] = $message;
+                $context['message'] = $return;
+              }
             }
           }
         }
