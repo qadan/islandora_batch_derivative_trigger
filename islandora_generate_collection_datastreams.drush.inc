@@ -11,7 +11,7 @@
 function islandora_generate_collection_datastreams_drush_command() {
   return array(
     'islandora-generate-collection-datastreams-regenerate-derivatives' => array(
-      'aliases' => array('deriv-regen', 'dr'),
+      'aliases' => array('deriv-regen', 'idr'),
       'description' => dt('Regenerates derivatives for the objects specified - either all objects in a collection potentially filtered by content model, or specific objects by PID - for all or given filtered DSIDs.'),
       'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
       'options' => array(
@@ -38,9 +38,26 @@ function islandora_generate_collection_datastreams_drush_command() {
       ),
     ),
     'islandora-generate-collection-datastreams-regenerate-metadata' => array(
-      'aliases' => array('md-regen', 'mr'),
+      'aliases' => array('md-regen', 'imr'),
       'description' => dt('Regenerates metadata for the objects specified'),
       'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
+    ),
+    'islandora-generate-collection-datastreams-get-metadata-mappings' => array(
+      'aliases' => array('md-mappings', 'igmm'),
+      'description' => dt('Gets a list of metadata mapping strategies for the given object, content model, or all mappings'),
+      'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
+      'options' => array(
+        'pid' => array(
+          'description' => dt('A PID to check mappings for. For a single object, this will check the content models associated with that PID. For a collection, it will check the content models in the collection policy. For a content model, it will check that content model. Without it, all mappings will be returned.'),
+          'required' => FALSE,
+        ),
+      ),
+      'examples' => array(
+        'List all metadata mappings' => 'drush -u 1 md-mappings',
+        'List all metadata mappings for an object' => 'drush -u 1 md-mappings --pid=islandora:sample_object',
+        'List all metadata mappings for a content model' => 'drush -u 1 md-mappings --pid=islandora:sampleCModel',
+        'List all metadata mappings for the content models in a collection\'s policy' => 'drush -u 1 md-mappings --pid=islandora:sample_collection',
+      ),
     ),
   );
 }
@@ -89,6 +106,57 @@ function drush_islandora_generate_collection_datastreams_regenerate_derivatives(
  * Drush command for metadata regeneration.
  */
 function drush_islandora_generate_collection_datastreams_regenerate_metadata() {
+}
+
+/**
+ * Drush command for getting metadata mappings.
+ */
+function drush_islandora_generate_collection_datastreams_get_metadata_mappings() {
+  $pid = drush_get_option('pid');
+  if (!is_null($pid)) {
+    $object = islandora_object_load($pid);
+    if ($object) {
+      if (in_array('fedora-system:ContentModel-3.0', $object->models)) {
+        $content_models = array($object->id);
+      }
+      elseif(in_array('islandora:collectionCModel', $object->models)) {
+        module_load_include('inc', 'islandora_generate_collection_datastreams', 'includes/utilities');
+        $collection_models = islandora_generate_collection_datastreams_get_child_content_models($object);
+        $content_models = array();
+        foreach ($collection_models as $collection_model) {
+          $content_models[] = $collection_model['pid'];
+        }
+      }
+      else {
+        $content_models = array_diff($object->models, array('fedora-system:FedoraObject-3.0'));
+      }
+    }
+    else {
+      drush_set_error('get_metadata_mappings', dt('Error: could not load object from PID @pid.', array(
+        '@pid' => $pid,
+      )));
+      return;
+    }
+  }
+  else {
+    module_load_include('inc', 'islandora', 'includes/utilities');
+    $content_models = array_keys(islandora_get_content_models());
+  }
+
+  foreach ($content_models as $content_model) {
+    $xslts = islandora_generate_collection_datastreams_regenerate_metadata_get_dc_xslts($content_model);
+    drush_print(str_repeat('-', strlen($content_model)));
+    drush_print($content_model);
+    drush_print(str_repeat('-', strlen($content_model)));
+    if (empty($xslts)) {
+      drush_print('N/A');
+    }
+    else {
+      foreach ($xslts as $xslt) {
+        drush_print($xslt);
+      }
+    }
+  }
 }
 
 /**

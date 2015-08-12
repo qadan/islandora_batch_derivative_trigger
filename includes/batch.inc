@@ -160,8 +160,9 @@ function islandora_generate_collection_datastreams_regenerate_all_derivatives_ba
   }
 
   $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
-  $context['message'] = t('Regenerated selected derivatives for @current_num @cmodel children in @source.', array(
+  $context['message'] = t('Regenerated selected derivatives for @current_num/@total @cmodel children in @source.', array(
     '@current_num' => $context['sandbox']['current'],
+    '@total' => $context['samdbox']['total_count'],
     '@cmodel' => $content_model,
     '@source' => $collection->label,
   ));
