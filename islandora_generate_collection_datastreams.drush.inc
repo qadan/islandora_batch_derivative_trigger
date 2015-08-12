@@ -153,18 +153,29 @@ function drush_islandora_generate_collection_datastreams_regenerate_dc_metadata(
     drush_set_error('generate_derivatives', dt('No DC metadata mapping was provided.'));
     return;
   }
-  elseif (islandora_generate_collection_datastreams_is_valid_mapping($mapping)) {
-    module_load_include('inc', 'islandora_generate_collection_datastreams', 'includes/batch');
-    if (is_array($batch_info['pids'])) {
-      batch_set(islandora_generate_collection_datastreams_regenerate_metadata_batch($batch_info['pids'], $mapping, NULL, NULL));
-    }
-    else {
-      foreach ($batch_info['content_models'] as $content_model) {
+  module_load_include('inc', 'islandora_generate_collection_datastreams', 'includes/batch');
+  $batches = FALSE;
+  if (is_array($batch_info['pids'])) {
+    batch_set(islandora_generate_collection_datastreams_regenerate_metadata_batch($batch_info['pids'], $mapping, NULL, NULL));
+    $batches = TRUE;
+  }
+  else {
+    foreach ($batch_info['content_models'] as $content_model) {
+      if (in_array($mapping, array_keys(islandora_generate_collection_datastreams_regenerate_metadata_get_dc_xslts($content_model)))) {
         batch_set(islandora_generate_collection_datastreams_regenerate_metadata_batch(NULL, $mapping, $batch_info['collection'], $content_model));
+        $batches = TRUE;
+      }
+      else {
+        drush_set_error('generate_derivatives', dt('The mapping "@mapping" is not valid for use with the @content_model content model. Use "drush md-mappings --pid=@content_model" to get a list of valid mappings for this content model.', array(
+          '@mapping' => $mapping,
+          '@content_model' => $content_model,
+        )));
       }
     }
   }
-  drush_backend_batch_process();
+  if ($batches) {
+    drush_backend_batch_process();
+  }
 }
 
 /**
