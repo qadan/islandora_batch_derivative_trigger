@@ -144,7 +144,7 @@ function drush_islandora_generate_collection_datastreams_get_metadata_mappings()
   }
 
   foreach ($content_models as $content_model) {
-    $xslts = islandora_generate_collection_datastreams_regenerate_metadata_get_dc_xslts($content_model);
+    $xslts = array_keys(islandora_generate_collection_datastreams_regenerate_metadata_get_dc_xslts($content_model));
     drush_print(str_repeat('-', strlen($content_model)));
     drush_print($content_model);
     drush_print(str_repeat('-', strlen($content_model)));
