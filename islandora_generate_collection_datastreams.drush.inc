@@ -37,10 +37,32 @@ function islandora_generate_collection_datastreams_drush_command() {
         'Regenerate collection derivatives for the specifid content model and DSID' => 'drush dr --collection=sample:collection --content_model=sample:CModel --dsids=DSID,DSID2',
       ),
     ),
-    'islandora-generate-collection-datastreams-regenerate-metadata' => array(
-      'aliases' => array('md-regen', 'imr'),
-      'description' => dt('Regenerates metadata for the objects specified'),
+    'islandora-generate-collection-datastreams-regenerate-dc-metadata' => array(
+      'aliases' => array('dcmd-regen', 'idcmr'),
+      'description' => dt('Regenerates DC metadata on specified objects using a given metadata mapping strategy.'),
       'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
+      'options' => array(
+        'pids' => array(
+          'description' => dt('A comma-separated list of PIDs to regenerate DC metadata for.'),
+          'required' => FALSE,
+        ),
+        'collection' => array(
+          'description' => dt('The PID of a collection to target for DC metadata regeneration.'),
+          'required' => FALSE,
+        ),
+        'content_models' => array(
+          'description' => dt('An optional comma-separated list of content models to filter DC metadata regeneration for.'),
+          'required' => FALSE,
+        ),
+        'mapping' => array(
+          'description' => dt('The metadata mapping strategy to use for DC metadata regeneration. If the usage of default DC XSLTs is turned on, these mappings take the form of the ID they carry. Otherwise, mappings take the format "transform.xsl:DSID", where "transform.xsl" is the name of a transformation XSLT defined using the DC transformation XSLT hook, and "DSID" is the name of the destination DSID. Use "drush md-mappings" to get a list of validly-defined metadata mapping strategies; using mapping strategies outside of this valid list can prodice undesired behaviour and is discouraged. Check "drush help md-mappings" for more information.'),
+          'required' => TRUE,
+        ),
+      ),
+      'examples' => array(
+        'Regenerate DC metadata for the selected objects' => 'drush dcmd-regen --pids=islandora:1,islandora:2 --mapping=mods_to_dc.xslt:MODS',
+        'Regenerate DC metadata for all objects of the given content model in a collection' => 'drush dcmd-regen --collection=sample:collection --content_model=sample:CModel --mapping=default_dc_xslt_machine_name',
+      ),
     ),
     'islandora-generate-collection-datastreams-get-metadata-mappings' => array(
       'aliases' => array('md-mappings', 'igmm'),
@@ -48,7 +70,7 @@ function islandora_generate_collection_datastreams_drush_command() {
       'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
       'options' => array(
         'pid' => array(
-          'description' => dt('A PID to check mappings for. For a single object, this will check the content models associated with that PID. For a collection, it will check the content models in the collection policy. For a content model, it will check that content model. Without it, all mappings will be returned.'),
+          'description' => dt('A PID to check mappings for. If this PID represents a collection, it will check for mappings associated with the content models of any objects currently in the collection. If it represents a content model, it will check for mappings associated with that content model. If it represents any other object type, it will check for mappings associated with any of the object\'s content models. If this option is not used, all defined mappings will be returned.'),
           'required' => FALSE,
         ),
       ),
@@ -105,7 +127,7 @@ function drush_islandora_generate_collection_datastreams_regenerate_derivatives(
 /**
  * Drush command for metadata regeneration.
  */
-function drush_islandora_generate_collection_datastreams_regenerate_metadata() {
+function drush_islandora_generate_collection_datastreams_regenerate_dc_metadata() {
 }
 
 /**
