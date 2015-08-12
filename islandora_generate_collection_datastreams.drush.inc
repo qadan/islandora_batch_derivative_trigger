@@ -119,7 +119,7 @@ function drush_islandora_generate_collection_datastreams_get_metadata_mappings()
       if (in_array('fedora-system:ContentModel-3.0', $object->models)) {
         $content_models = array($object->id);
       }
-      elseif(in_array('islandora:collectionCModel', $object->models)) {
+      elseif (in_array('islandora:collectionCModel', $object->models)) {
         module_load_include('inc', 'islandora_generate_collection_datastreams', 'includes/utilities');
         $collection_models = islandora_generate_collection_datastreams_get_child_content_models($object);
         $content_models = array();
