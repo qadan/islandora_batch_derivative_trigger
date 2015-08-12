@@ -85,41 +85,57 @@ function islandora_generate_collection_datastreams_drush_command() {
 }
 
 /**
- * Command executor for derivative regeneration.
+ * Preps the regeneration of derivative or metadata datastreams.
  */
-function drush_islandora_generate_collection_datastreams_regenerate_derivatives() {
+function islandora_generate_collection_datastreams_prep_datastream_regeneration() {
+  $return = array();
   $collection = drush_get_option('collection');
-  $dsids = islandora_generate_collection_datastreams_get_option_array_or_null(drush_get_option('dsids'));
   $pids = islandora_generate_collection_datastreams_get_option_array_or_null(drush_get_option('pids'));
+  $return['pids'] = $pids;
   if (!is_null($collection)) {
     $collection = islandora_object_load($collection);
     if (!$collection) {
-      drush_set_error('regenerate_derivatives', dt('The collection passed in was invalid.'));
-      return;
+      drush_set_error('regenerate_derivatives', dt('Error: The collection passed in was invalid.'));
+      return FALSE;
     }
+    $return['collection'] = $collection;
     $content_models = islandora_generate_collection_datastreams_get_option_array_or_null(drush_get_option('content_models'));
     if (!is_array($content_models)) {
-      module_load_include('inc', 'islandora_generate_collection_datastreams', 'includes/batch');
       module_load_include('inc', 'islandora_generate_collection_datastreams', 'includes/utilities');
       $content_models = array();
       foreach (islandora_generate_collection_datastreams_get_child_content_models($collection) as $content_model) {
         $content_models[] = $content_model['pid'];
       }
     }
-    foreach ($content_models as $content_model) {
+    $return['content_models'] = $content_models;
+  }
+  elseif (is_null($pids)) {
+    drush_set_error('regenerate_derivatives', dt('No collection or PIDs were passed in.'));
+    return FALSE;
+  }
+  return $return;
+}
+
+/**
+ * Command executor for derivative regeneration.
+ */
+function drush_islandora_generate_collection_datastreams_regenerate_derivatives() {
+  $batch_info = islandora_generate_collection_datastreams_prep_datastream_regeneration();
+  if (!$batch_info) {
+    return;
+  }
+  module_load_include('inc', 'islandora_generate_collection_datastreams', 'includes/batch');
+  $dsids = islandora_generate_collection_datastreams_get_option_array_or_null(drush_get_option('dsids'));
+  if (is_array($batch_info['pids'])) {
+    batch_set(islandora_generate_collection_datastreams_regenerate_derivatives_batch($batch_info['pids'], $dsids, NULL, NULL));
+  }
+  else {
+    foreach ($batch_info['content_models'] as $content_model) {
       if (!is_array($dsids)) {
         $dsids = array_keys(islandora_generate_collection_datastreams_regenerate_derivatives_form_get_derivatives_list($content_model));
       }
-      batch_set(islandora_generate_collection_datastreams_regenerate_derivatives_batch(NULL, $dsids, $collection, $content_model));
+      batch_set(islandora_generate_collection_datastreams_regenerate_derivatives_batch(NULL, $dsids, $batch_info['collection'], $content_model));
     }
-  }
-  elseif (is_array($pids)) {
-    module_load_include('inc', 'islandora_generate_collection_datastreams', 'includes/batch');
-    batch_set(islandora_generate_collection_datastreams_regenerate_derivatives_batch($pids, $dsids, NULL, NULL));
-  }
-
-  else {
-    drush_set_error('regenerate_derivatives', dt('No collection or PIDs were passed in.'));
   }
   drush_backend_batch_process();
 }
@@ -128,6 +144,27 @@ function drush_islandora_generate_collection_datastreams_regenerate_derivatives(
  * Drush command for metadata regeneration.
  */
 function drush_islandora_generate_collection_datastreams_regenerate_dc_metadata() {
+  $batch_info = islandora_generate_collection_datastreams_prep_datastream_regeneration();
+  if (!$batch_info) {
+    return;
+  }
+  $mapping = drush_get_option('mapping');
+  if (is_null($mapping)) {
+    drush_set_error('generate_derivatives', dt('No DC metadata mapping was provided.'));
+    return;
+  }
+  elseif (islandora_generate_collection_datastreams_is_valid_mapping($mapping)) {
+    module_load_include('inc', 'islandora_generate_collection_datastreams', 'includes/batch');
+    if (is_array($batch_info['pids'])) {
+      batch_set(islandora_generate_collection_datastreams_regenerate_metadata_batch($batch_info['pids'], $mapping, NULL, NULL));
+    }
+    else {
+      foreach ($batch_info['content_models'] as $content_model) {
+        batch_set(islandora_generate_collection_datastreams_regenerate_metadata_batch(NULL, $mapping, $batch_info['collection'], $content_model));
+      }
+    }
+  }
+  drush_backend_batch_process();
 }
 
 /**
