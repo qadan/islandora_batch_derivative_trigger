@@ -177,7 +177,7 @@ function islandora_generate_collection_datastreams_regenerate_all_derivatives_ba
     }
   }
 
-  $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count']; 
+  $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
 }
 
 /**
@@ -299,7 +299,7 @@ function islandora_generate_collection_datastreams_regenerate_all_metadata_batch
     }
   }
 
-  $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count']; 
+  $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
 }
 
 /**
