@@ -29,9 +29,10 @@ function islandora_generate_collection_datastreams_get_child_content_models(Abst
       continue;
     }
     $cmodel = islandora_object_load($model_pid);
+    $label = isset($cmodel->label) ? $cmodel->label : t("unknown type");
     $model_array[$model_pid] = array(
       'pid' => $model_pid,
-      'label' => $cmodel->label,
+      'label' => $label,
     );
   }
   return $model_array;
