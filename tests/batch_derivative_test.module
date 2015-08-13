@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * @file
+ * Batch derivative triggering test CM.
+ */
+
+/**
+ * Implements hook_islandora_required_objects().
+ */
+function batch_derivative_test_islandora_required_objects(IslandoraTuque $connection) {
+
+}
+
+/**
+ * Implements hook_cmodel_pid_islandora_derivative().
+ */
+function batch_derivatives_test_islandora_batch_testcm_islandora_derivative() {
+  return array(
+    'source_dsid' => 'OBJ',
+    'destination_dsid' => 'DERIVED',
+    'weight' => '0',
+    'function' => array(
+      'batch_derivatives_test_create_deriv_datastream',
+    ),
+  );
+}
+
+/**
+ * Implements hook_xml_form_builder_forms().
+ */
+function batch_derivative_test_xml_form_builder_forms() {
+  return array(
+    'Test Form' => array(
+      'form_file' => drupal_get_path('module', 'batch_derivative_test') . '/fixtures/stub_form.xml',
+    ),
+  );
+}
+
+/**
+ * Implements hook_xml_form_builder_get_transforms().
+ */
+function batch_derivatives_test_xml_form_builder_get_transforms() {
+  return array(
+    'mods_to_dc_duplicate.xsl' => drupal_get_path('module', 'batch_derivative_test') . '/fixtures/mods_to_dc_duplicate.xsl',
+  );
+}
+
+/**
+ * Implements hook_xml_form_builder_form_associations().
+ */
+function batch_derivative_test_xml_form_builder_form_associations() {
+  return array(
+    'batch_derivative_test_cm_mods_form' => array(
+      'content_model' => 'islandora:batch_testCM',
+      'form_name' => 'Batch Test Form Association',
+      'dsid' => 'MODS',
+      'title_field' => array('titleInfo', 'title'),
+      'transform' => 'No Transform',
+      'template' => FALSE,
+    ),
+  );
+}
+
+/**
+ * Transforms the OBJ datastream into the DERIVED datastream.
+ */
+function batch_derivative_test_derive_derived_datastream($object, $force = FALSE, $hook) {
+  if (isset($object['OBJ'])) {
+    if (!isset($object['DERIVED'])) {
+      $derived = $object->constructDatastream('DERIVED', 'M');
+      $derived->mimetype = 'text/plain';
+      $derived->setContentFromString($object['OBJ']->content . " DERIVED");
+      $object->ingestDatastream($derived);
+    }
+    else {
+      $object['DERIVED']->setContentFromString($object['OBJ']->content . " DERIVED");;
+    }
+    $success = TRUE;
+    $message = "Derived DERIVED datastream for @obj.";
+  }
+  else {
+    $success = FALSE;
+    $message = "OBJ datastream not found on @obj.";
+  }
+  return array(
+    'success' => $success,
+    'messages' => array(
+      'message' => $message,
+      'message_sub' => array(
+        '@obj' => $object->id,
+      ),
+      'type' => 'dsm',
+    ),
+  );
+}

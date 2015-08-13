@@ -1,0 +1,9 @@
+name = Batch Derivative Test Module
+description = Test content model for derivatives triggering
+package = Test
+hidden = TRUE
+dependencies[] = islandora
+dependencies[] = islandora_basic_collection
+dependencies[] = xml_form_builder
+version = 7.x-1.0
+core = 7.x

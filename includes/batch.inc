@@ -288,14 +288,21 @@ function islandora_batch_derivative_trigger_regenerate_all_metadata_batch_operat
       if ($child && $child = islandora_object_load($child)) {
         $result = islandora_batch_derivative_trigger_regenerate_dc_metadata($child, $mapping);
         $context['sandbox']['current']++;
-        $message = is_string($result) ? "@current_num/@total: Error: $result" : '@current_num/@total: Regenerated DC metadata for @pid (type: @cmodel, collection: @source).';
-        $context['message'] = t($message, array(
+        $subs = array(
           '@current_num' => $context['sandbox']['current'],
           '@total' => $context['sandbox']['total_count'],
           '@cmodel' => $content_model,
           '@source' => $collection->label,
           '@pid' => $child->id,
         ));
+        if (is_string($result)) {
+          $message = "@current_num/@total: Error: @result";
+          $subs['@result'] = $result;
+        }
+        else {
+          $message = '@current_num/@total: Regenerated DC metadata for @pid (type: @cmodel, collection: @source).';
+        }
+        $context['message'] = t($message, $subs);
       }
     }
   }

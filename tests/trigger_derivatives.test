@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * @file
+ * SimpleTest derivative triggering.
+ */
+
+class IslandoraBatchDerivativeTriggerDerivativesTestCase extends IslandoraCollectionWebTestCase {
+
+  /**
+   * Test info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Derivative Regeneration',
+      'description' => 'Test that derivative regeneration triggers properly',
+      'group' => 'Islandora Batch Derivative Trigger',
+    );
+  }
+
+  /**
+   * Setup phase.
+   *
+   * @see DrupalWebTestCase::setUp()
+   */
+  protected function setUp() {
+    return array(
+      'islandora_basic_collection',
+      'islandora_batch_derivative_trigger',
+      'batch_derivative_test',
+    );
+  }
+
+  /**
+   * Ingests a test object with a possible datastream.
+   */
+}
