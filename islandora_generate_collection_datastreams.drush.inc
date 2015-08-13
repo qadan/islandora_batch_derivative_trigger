@@ -31,6 +31,10 @@ function islandora_generate_collection_datastreams_drush_command() {
           'description' => dt('An optional comma-separated list of DSIDs to filter derivative regeneration by.'),
           'required' => FALSE,
         ),
+        'skip_existing' => array(
+          'description' => dt('Whether or not to generate every derivative, even if it already exists on the object; defaults to "false", and pretty much any value given here will set it as "true".'),
+          'required' => FALSE,
+        ),
       ),
       'examples' => array(
         'Regenerate all derivatives for specified objects' => 'drush deriv-regen --pids=islandora:1,islandora:2,islandora:3',
@@ -120,6 +124,8 @@ function islandora_generate_collection_datastreams_prep_datastream_regeneration(
  * Command executor for derivative regeneration.
  */
 function drush_islandora_generate_collection_datastreams_regenerate_derivatives() {
+  $force = drush_get_option('skip_existing');
+  $force = is_null($force) ? TRUE : FALSE;
   $batch_info = islandora_generate_collection_datastreams_prep_datastream_regeneration();
   if (!$batch_info) {
     return;
@@ -127,14 +133,14 @@ function drush_islandora_generate_collection_datastreams_regenerate_derivatives(
   module_load_include('inc', 'islandora_generate_collection_datastreams', 'includes/batch');
   $dsids = islandora_generate_collection_datastreams_get_option_array_or_null(drush_get_option('dsids'));
   if (is_array($batch_info['pids'])) {
-    batch_set(islandora_generate_collection_datastreams_regenerate_derivatives_batch($batch_info['pids'], $dsids, NULL, NULL));
+    batch_set(islandora_generate_collection_datastreams_regenerate_derivatives_batch($batch_info['pids'], $dsids, NULL, NULL, $force));
   }
   else {
     foreach ($batch_info['content_models'] as $content_model) {
       if (!is_array($dsids)) {
         $dsids = array_keys(islandora_generate_collection_datastreams_regenerate_derivatives_form_get_derivatives_list($content_model));
       }
-      batch_set(islandora_generate_collection_datastreams_regenerate_derivatives_batch(NULL, $dsids, $batch_info['collection'], $content_model));
+      batch_set(islandora_generate_collection_datastreams_regenerate_derivatives_batch(NULL, $dsids, $batch_info['collection'], $content_model, $force));
     }
   }
   drush_backend_batch_process();

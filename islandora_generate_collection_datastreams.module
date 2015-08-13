@@ -199,7 +199,6 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_form_v
  */
 function islandora_generate_collection_datastreams_regenerate_derivatives_form_submit(array $form, array &$form_state) {
   $clicked_button = end($form_state['clicked_button']['#parents']);
-  $force = $form_state['values']['generate_missing'] ? FALSE : TRUE;
   $collection = $form_state['collection'];
   if ($clicked_button === 'submit_all') {
     $children = NULL;
@@ -208,7 +207,7 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_form_s
     $children = array_keys(array_filter($form_state['values']['children']));
   }
   module_load_include('inc', 'islandora_generate_collection_datastreams', 'includes/batch');
-  $batch = islandora_generate_collection_datastreams_regenerate_derivatives_batch($children, array_keys(array_filter($form_state['values']['dsids'])), $collection, $form_state['values']['content_model'], $force);
+  $batch = islandora_generate_collection_datastreams_regenerate_derivatives_batch($children, array_keys(array_filter($form_state['values']['dsids'])), $collection, $form_state['values']['content_model'], (bool) $form_state['values']['generate_missing']);
   batch_set($batch);
 }
 
