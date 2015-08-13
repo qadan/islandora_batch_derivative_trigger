@@ -9,7 +9,7 @@ require_once drupal_get_path('module', 'islandora_basic_collection') . '/include
 /**
  * A batch 'finished' callback for derivative regeneration that includes logs.
  */
-function islandora_generate_collection_datastreams_derivative_regeneration_batch_finished($success, $results, $operations) {
+function islandora_batch_derivative_trigger_derivative_regeneration_batch_finished($success, $results, $operations) {
   if (!$success) {
     $error_operation = reset($operations);
     $message = t('An error occurred while processing %error_operation with arguments: @arguments', array(
@@ -39,12 +39,12 @@ function islandora_generate_collection_datastreams_derivative_regeneration_batch
  * @return array
  *   A Drupal batch array.
  */
-function islandora_generate_collection_datastreams_regenerate_derivatives_batch($children, $dsids, AbstractObject $collection, $content_model, $force = TRUE) {
+function islandora_batch_derivative_trigger_regenerate_derivatives_batch($children, $dsids, AbstractObject $collection, $content_model, $force = TRUE) {
   $batch = array(
-    'finished' => 'islandora_generate_collection_datastreams_derivative_regeneration_batch_finished',
+    'finished' => 'islandora_batch_derivative_trigger_derivative_regeneration_batch_finished',
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
     'error_message' => t('An error has occurred.'),
-    'file' => drupal_get_path('module', 'islandora_generate_collection_datastreams') . '/includes/batch.inc',
+    'file' => drupal_get_path('module', 'islandora_batch_derivative_trigger') . '/includes/batch.inc',
   );
   if (is_array($children)) {
     $batch += array(
@@ -59,7 +59,7 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_batch(
     );
     foreach ($children as $child) {
       $batch['operations'][] = array(
-        'islandora_generate_collection_datastreams_regenerate_derivatives_batch_operation',
+        'islandora_batch_derivative_trigger_regenerate_derivatives_batch_operation',
         array($child, $dsids, $force),
       );
     }
@@ -70,7 +70,7 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_batch(
       'init_message' => 'Preparing to regenerate derivatives for all children in the collection. Be aware that if one or more DSIDs with longer processing times were selected, this may take a long time.',
       'operations' => array(
         array(
-          'islandora_generate_collection_datastreams_regenerate_all_derivatives_batch_operation',
+          'islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation',
           array($dsids, $collection, $content_model),
         ),
       ),
@@ -89,7 +89,7 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_batch(
  * @param array $context
  *   The batch context.
  */
-function islandora_generate_collection_datastreams_regenerate_derivatives_batch_operation($child, array $dsids, $force, &$context) {
+function islandora_batch_derivative_trigger_regenerate_derivatives_batch_operation($child, array $dsids, $force, &$context) {
   module_load_include('inc', 'islandora', 'includes/derivatives');
   if (!isset($context['sandbox']['progress'])) {
     $context['sandbox']['progress'] = 0;
@@ -135,7 +135,7 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_batch_
  * @param array $context
  *   The batch context.
  */
-function islandora_generate_collection_datastreams_regenerate_all_derivatives_batch_operation(array $dsids, AbstractObject $collection, $content_model, &$context) {
+function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation(array $dsids, AbstractObject $collection, $content_model, &$context) {
   module_load_include('inc', 'islandora', 'includes/derivatives');
   $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 1, 'manage', $content_model);
   $context['sandbox']['page']++;
@@ -165,6 +165,7 @@ function islandora_generate_collection_datastreams_regenerate_all_derivatives_ba
             }
           }
         }
+        $context['sandbox']['current']++;
         $context['message'] = t('@current_num/@total: Regenerated selected derivatives for @pid (type: @cmodel, collection: @source).', array(
           '@current_num' => $context['sandbox']['current'],
           '@total' => $context['sandbox']['total_count'],
@@ -172,7 +173,6 @@ function islandora_generate_collection_datastreams_regenerate_all_derivatives_ba
           '@source' => $collection->label,
           '@pid' => $child->id,
         ));
-        $context['sandbox']['current']++;
       }
     }
   }
@@ -195,12 +195,12 @@ function islandora_generate_collection_datastreams_regenerate_all_derivatives_ba
  * @return array
  *   A Drupal batch array.
  */
-function islandora_generate_collection_datastreams_regenerate_metadata_batch($children, $mapping, AbstractObject $collection, $content_model) {
+function islandora_batch_derivative_trigger_regenerate_metadata_batch($children, $mapping, AbstractObject $collection, $content_model) {
   $batch = array(
-    'finished' => 'islandora_generate_collection_datastreams_derivative_regeneration_batch_finished',
+    'finished' => 'islandora_batch_derivative_trigger_derivative_regeneration_batch_finished',
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
     'error_message' => t('An error has occurred.'),
-    'file' => drupal_get_path('module', 'islandora_generate_collection_datastreams') . '/includes/batch.inc',
+    'file' => drupal_get_path('module', 'islandora_batch_derivative_trigger') . '/includes/batch.inc',
   );
   if (is_array($children)) {
     $batch += array(
@@ -215,7 +215,7 @@ function islandora_generate_collection_datastreams_regenerate_metadata_batch($ch
     );
     foreach ($children as $child) {
       $batch['operations'][] = array(
-        'islandora_generate_collection_datastreams_regenerate_metadata_batch_operation',
+        'islandora_batch_derivative_trigger_regenerate_metadata_batch_operation',
         array($child, $mapping),
       );
     }
@@ -226,7 +226,7 @@ function islandora_generate_collection_datastreams_regenerate_metadata_batch($ch
       'init_message' => 'Preparing to regenerate DC metadata for all children.',
       'operations' => array(
         array(
-          'islandora_generate_collection_datastreams_regenerate_all_metadata_batch_operation',
+          'islandora_batch_derivative_trigger_regenerate_all_metadata_batch_operation',
           array($mapping, $collection, $content_model),
         ),
       ),
@@ -245,16 +245,16 @@ function islandora_generate_collection_datastreams_regenerate_metadata_batch($ch
  * @param array $context
  *   The batch context.
  */
-function islandora_generate_collection_datastreams_regenerate_metadata_batch_operation($child, $mapping, &$context) {
+function islandora_batch_derivative_trigger_regenerate_metadata_batch_operation($child, $mapping, &$context) {
   if (!isset($context['sandbox']['progress'])) {
     $context['sandbox']['progress'] = 0;
     $context['sandbox']['total'] = 1;
   }
   $child = islandora_object_load($child);
   if ($child) {
-    islandora_generate_collection_datastreams_regenerate_dc_metadata($child, $mapping);
+    $result = islandora_batch_derivative_trigger_regenerate_dc_metadata($child, $mapping);
     $context['sandbox']['progress']++;
-    $context['message'] = "Regenerated DC metadata for object {$child->id} ({$child->label})";
+    $context['message'] = is_string($result) ? "Error: $result" : "Regenerated DC metadata for object {$child->id} ({$child->label})";
   }
   else {
     $context['message'] = "Skipping DC metadata regeneration for $child: unable to load object.";
@@ -274,7 +274,7 @@ function islandora_generate_collection_datastreams_regenerate_metadata_batch_ope
  * @param array $context
  *   The batch context.
  */
-function islandora_generate_collection_datastreams_regenerate_all_metadata_batch_operation($mapping, $collection, $content_model, &$context) {
+function islandora_batch_derivative_trigger_regenerate_all_metadata_batch_operation($mapping, $collection, $content_model, &$context) {
   $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 1, 'manage', $content_model);
   $context['sandbox']['page']++;
   if ($results) {
@@ -286,9 +286,10 @@ function islandora_generate_collection_datastreams_regenerate_all_metadata_batch
     foreach ($members as $result) {
       $child = $result['object']['value'];
       if ($child && $child = islandora_object_load($child)) {
-        islandora_generate_collection_datastreams_regenerate_dc_metadata($child, $mapping);
+        $result = islandora_batch_derivative_trigger_regenerate_dc_metadata($child, $mapping);
         $context['sandbox']['current']++;
-        $context['message'] = t('@current_num/@total: Regenerated DC metadata for @pid (type: @cmodel, collection: @source).', array(
+        $message = is_string($result) ? "@current_num/@total: Error: $result" : '@current_num/@total: Regenerated DC metadata for @pid (type: @cmodel, collection: @source).';
+        $context['message'] = t($message, array(
           '@current_num' => $context['sandbox']['current'],
           '@total' => $context['sandbox']['total_count'],
           '@cmodel' => $content_model,
@@ -310,7 +311,7 @@ function islandora_generate_collection_datastreams_regenerate_all_metadata_batch
  * @param string $mapping
  *   The mapping strategy to use.
  */
-function islandora_generate_collection_datastreams_regenerate_dc_metadata(AbstractObject $child, $mapping) {
+function islandora_batch_derivative_trigger_regenerate_dc_metadata(AbstractObject $child, $mapping) {
   if (variable_get('xml_form_builder_use_default_dc_xslts', FALSE)) {
     // In the case where default XSLTs are being used.
     module_load_include('inc', 'xml_form_builder', 'includes/db');
@@ -331,7 +332,7 @@ function islandora_generate_collection_datastreams_regenerate_dc_metadata(Abstra
       ->fetchField();
     $xslt = new DOMDocument();
     if (!$xslt->loadXML($transform)) {
-      return FALSE;
+      return t("The transform being used is not valid XML");
     }
   }
   // In the case where they're not.
@@ -339,8 +340,17 @@ function islandora_generate_collection_datastreams_regenerate_dc_metadata(Abstra
     list ($xslt, $source) = explode(":", $mapping);
   }
   $document = new DOMDocument();
+  if (!isset($child[$source])) {
+    return t("The object @child is missing the @source datastream.", array(
+      '@child' => $child->id,
+      '@source' => $source,
+    ));
+  }
   if ($document->loadXML($child[$source]->content)) {
     return xml_form_builder_update_dc_datastream($child, $xslt, $document);
   }
-  return FALSE;
+  return t("The XML found on the @source datastream of @child could not be parsed.", array(
+    '@child' => $child->id,
+    '@source' => $source,
+  ));
 }

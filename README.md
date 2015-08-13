@@ -1,8 +1,10 @@
-# Islandora Generate/Regenrate Collection derivatives [![Build Status](https://travis-ci.org/qadan/islandora_generate_collection_derivatives.png?branch=7.x)](https://travis-ci.org/qadan/islandora_generate_collection_derivatives)
+# Islandora Batch Derivative Trigger [![Build Status](https://travis-ci.org/qadan/islandora_batch_derivative_trigger.png?branch=7.x)](https://travis-ci.org/qadan/islandora_batch_derivative_trigger)
 
 ## Summary
 
-The Islandora Generate/Regenrate Collection Derivatives module allows for per-DSID generation or regeneration of derivatives on objects, as they are defined by the objects' content model, as well as per-metadata-mapping regeneration of objects' DC metadata, as it is defined by either DC XSLTs associated with the content model, or by Default DC XSLTs defined in the XML Forms management page.
+Islandora Batch Derivative Trigger provides a way to trigger the bulk generation or regeneration of derivatives and DC metadata on objects.
+
+It allows for per-DSID generation or regeneration of derivatives on objects, as they are defined by the objects' content model, as well as per-metadata-mapping regeneration of objects' DC metadata, as it is defined by either DC XSLTs associated with the content model, or by Default DC XSLTs defined in the XML Forms management page.
 
 This can be done either on a collection's management page (fieldsets are added to the collection management form to facilitate this), or via Drush (check `drush help deriv-regen` and `drush help dcmd-regen` for details).
 
@@ -12,7 +14,7 @@ DC metadata regeneration is available using any XSLT and source DSID combination
 
 ## Requirements
 
-Islandora Generate/Regenerate Collection Derivatives is dependent on the following modules:
+Islandora Batch Derivative Trigger is dependent on the following modules:
 
 - Islandora
 - Islandora XML Form Builder

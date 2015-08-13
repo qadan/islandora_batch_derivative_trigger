@@ -13,7 +13,7 @@
  * @return array
  *   An array of content models.
  */
-function islandora_generate_collection_datastreams_get_child_content_models(AbstractObject $collection) {
+function islandora_batch_derivative_trigger_get_child_content_models(AbstractObject $collection) {
   $model_query = islandora_basic_collection_get_query_info(array(
     'object' => $collection,
     'page_size' => -1,
@@ -58,7 +58,7 @@ function islandora_generate_collection_datastreams_get_child_content_models(Abst
  * @return array
  *   A Drupal select table form element.
  */
-function islandora_generate_collection_datastreams_get_children_select_table_form_element_with_content_model(AbstractObject $object, array $pager_options, $content_model = NULL) {
+function islandora_batch_derivative_trigger_get_children_select_table_form_element_with_content_model(AbstractObject $object, array $pager_options, $content_model = NULL) {
   // Assumes all results are returned although the function description
   // states otherwise.
   $limit = 10;

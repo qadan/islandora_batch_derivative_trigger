@@ -20,16 +20,16 @@ before_install:
   - export ISLANDORA_DIR=$HOME/islandora
   - $HOME/islandora/tests/scripts/travis_setup.sh
   - cd $HOME/drupal-*
-  - ln -s $TRAVIS_BUILD_DIR sites/all/modules/islandora_generate_collection_datastreams
+  - ln -s $TRAVIS_BUILD_DIR sites/all/modules/islandora_batch_derivative_trigger
   - ln -s $HOME/islandora_solution_pack_collection sites/all/modules/islandora_solution_pack_collection
   - ln -s $HOME/islandora_xml_forms sites/all/modules/islandora_xml_forms
   - ln -s $HOME/php_lib sites/all/modules/php_lib
   - ln -s $HOME/objective_forms sites/all/modules/objective_forms
   - drush en --user=1 --yes islandora_basic_collection
   - drush en --user=1 --yes xml_form_builder
-  - drush en --user=1 --yes islandora_generate_collection_datastreams
+  - drush en --user=1 --yes islandora_batch_derivative_trigger
 script:
-  - ant -buildfile sites/all/modules/islandora_generate_collection_datastreams/build.xml lint
-  - $ISLANDORA_DIR/tests/scripts/line_endings.sh sites/all/modules/islandora_generate_collection_datastreams
-  - drush coder-review --reviews=production,security,style,i18n,potx,sniffer islandora_generate_collection_datastreams
-  - phpcpd --names *.module,*.inc,*.test sites/all/modules/islandora_generate_collection_datastreams
+  - ant -buildfile sites/all/modules/islandora_batch_derivative_trigger/build.xml lint
+  - $ISLANDORA_DIR/tests/scripts/line_endings.sh sites/all/modules/islandora_batch_derivative_trigger
+  - drush coder-review --reviews=production,security,style,i18n,potx,sniffer islandora_batch_derivative_trigger
+  - phpcpd --names *.module,*.inc,*.test sites/all/modules/islandora_batch_derivative_trigger
