@@ -170,7 +170,7 @@ function islandora_generate_collection_datastreams_regenerate_all_derivatives_ba
           '@total' => $context['sandbox']['total_count'],
           '@cmodel' => $content_model,
           '@source' => $collection->label,
-          '@pid' = $child->id,
+          '@pid' => $child->id,
         ));
         $context['sandbox']['current']++;
       }
