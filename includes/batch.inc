@@ -263,7 +263,7 @@ function islandora_generate_collection_datastreams_regenerate_metadata_batch_ope
  *   The batch context.
  */
 function islandora_generate_collection_datastreams_regenerate_all_metadata_batch_operation($mapping, $collection, $content_model, &$context) {
-  $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 10, 'manage', $content_model);
+  $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 1, 'manage', $content_model);
   $context['sandbox']['page']++;
   if ($results) {
     list ($count, $members) = $results;
@@ -281,8 +281,9 @@ function islandora_generate_collection_datastreams_regenerate_all_metadata_batch
   }
 
   $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
-  $context['message'] = t('Regenerated DC metadata for @current_num @cmodel children in @source.', array(
+  $context['message'] = t('Regenerated DC metadata for @current_num/@total @cmodel children in @source.', array(
     '@current_num' => $context['sandbox']['current'],
+    '@total' => $context['sandbox']['total_count'],
     '@cmodel' => $content_model,
     '@source' => $collection->label,
   ));
