@@ -6,7 +6,7 @@ The Islandora Generate/Regenrate Collection Derivatives module allows for per-DS
 
 This can be done either on a collection's management page (fieldsets are added to the collection management form to facilitate this), or via Drush (check `drush help deriv-regen` and `drush help dcmd-regen` for details).
 
-The list of datastreams to run the tool against is generated from `hook_islandora_derivative()`, so installing other modules that implement that hook allows one to retroatively generate derivatives on objects in the collection. A checkbox (and Drush option) is provided to toggle the derivative regeneration "force" option so that only missing datastreams are generated.
+The list of datastreams to run the tool against is generated from `hook_islandora_derivative()`, so installing other modules that implement that hook allows one to retroactively generate derivatives on objects in the collection. A checkbox (and Drush option) is provided to toggle the derivative regeneration "force" option so that only missing datastreams are generated.
 
 DC metadata regeneration is available using any XSLT and source DSID combination defined for that particular content model via xml_form_builder. When using Drush, these mapping strategies are required. Check `drush help md-mappings` for information on how to get valid metadata mappings for objects.
 
