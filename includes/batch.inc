@@ -98,10 +98,21 @@ function islandora_generate_collection_datastreams_regenerate_derivatives_batch_
   $child = islandora_object_load($child);
   if ($child) {
     foreach ($dsids as $dsid) {
-      $context['results'][] = islandora_do_derivatives($child, array(
+      $logs = islandora_do_derivatives($child, array(
         'force' => $force,
         'destination_dsid' => $dsid,
       ));
+      $context['results'][] = $logs;
+      foreach ((array) $logs as $log) {
+        foreach ($log['messages'] as $message) {
+          $return = $message['message'];
+          $message_sub = isset($message['message_sub']) ? $message['message_sub'] : array();
+          foreach ($message_sub as $sub => $value) {
+            $return = str_replace($sub, $value, $return);
+          }
+          $context['message'] = $return;
+        }
+      }
       $context['sandbox']['progress']++;
     }
     $context['message'] = "Regenerated selected derivatives for object {$child->id} ({$child->label})";
@@ -154,18 +165,19 @@ function islandora_generate_collection_datastreams_regenerate_all_derivatives_ba
             }
           }
         }
+        $context['message'] = t('@current_num/@total: Regenerated selected derivatives for @pid (type: @cmodel, collection: @source).', array(
+          '@current_num' => $context['sandbox']['current'],
+          '@total' => $context['sandbox']['total_count'],
+          '@cmodel' => $content_model,
+          '@source' => $collection->label,
+          '@pid' = $child->id,
+        ));
         $context['sandbox']['current']++;
       }
     }
   }
 
-  $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
-  $context['message'] = t('Regenerated selected derivatives for @current_num/@total @cmodel children in @source.', array(
-    '@current_num' => $context['sandbox']['current'],
-    '@total' => $context['samdbox']['total_count'],
-    '@cmodel' => $content_model,
-    '@source' => $collection->label,
-  ));
+  $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count']; 
 }
 
 /**
@@ -276,17 +288,18 @@ function islandora_generate_collection_datastreams_regenerate_all_metadata_batch
       if ($child && $child = islandora_object_load($child)) {
         islandora_generate_collection_datastreams_regenerate_dc_metadata($child, $mapping);
         $context['sandbox']['current']++;
+        $context['message'] = t('@current_num/@total: Regenerated DC metadata for @pid (type: @cmodel, collection: @source).', array(
+          '@current_num' => $context['sandbox']['current'],
+          '@total' => $context['sandbox']['total_count'],
+          '@cmodel' => $content_model,
+          '@source' => $collection->label,
+          '@pid' => $child->id,
+        ));
       }
     }
   }
 
-  $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
-  $context['message'] = t('Regenerated DC metadata for @current_num/@total @cmodel children in @source.', array(
-    '@current_num' => $context['sandbox']['current'],
-    '@total' => $context['sandbox']['total_count'],
-    '@cmodel' => $content_model,
-    '@source' => $collection->label,
-  ));
+  $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count']; 
 }
 
 /**
