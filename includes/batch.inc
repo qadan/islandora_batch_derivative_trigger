@@ -294,7 +294,7 @@ function islandora_batch_derivative_trigger_regenerate_all_metadata_batch_operat
           '@cmodel' => $content_model,
           '@source' => $collection->label,
           '@pid' => $child->id,
-        ));
+        );
         if (is_string($result)) {
           $message = "@current_num/@total: Error: @result";
           $subs['@result'] = $result;
