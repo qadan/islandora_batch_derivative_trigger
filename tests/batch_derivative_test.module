@@ -9,7 +9,26 @@
  * Implements hook_islandora_required_objects().
  */
 function batch_derivative_test_islandora_required_objects(IslandoraTuque $connection) {
+  $path = drupal_get_path('module', 'batch_derivative_test') . "/fixtures";
+  $repository = $connection->repository;
+  // Content model.
+  $cm = $repository->constructObject('islandora:batch_testCM');
+  $cm->owner = 'fedoraAdmin';
+  $cm->label = 'Islandora Test Content Model';
+  $cm->models = 'fedora-system:ContentModel-3.0';
+  // DS-COMPOSITE-MODEL.
+  $ds_cm = $cm->constructDatastream('DS-COMPOSITE-MODEL', 'X');
+  $ds_cm->label = 'DS-COMPOSITE-MODEL';
+  $ds_cm->mimetype = 'application/xml';
+  $ds_cm->setContentFromFile("$path/batch_derivative_test_ds_composite_model.xml");
+  $cm->ingestDatastream($ds_cm);
 
+  return array(
+    'batch_derivative_test' => array(
+      'title' => 'Batch Derivative Test',
+      'objects' => array($cm),
+    ),
+  );
 }
 
 /**
@@ -32,7 +51,7 @@ function batch_derivatives_test_islandora_batch_testcm_islandora_derivative() {
 function batch_derivative_test_xml_form_builder_forms() {
   return array(
     'Test Form' => array(
-      'form_file' => drupal_get_path('module', 'batch_derivative_test') . '/fixtures/stub_form.xml',
+      'form_file' => drupal_get_path('module', 'batch_derivative_test') . '/fixtures/batch_derivative_test_stub_form.xml',
     ),
   );
 }
@@ -64,6 +83,16 @@ function batch_derivative_test_xml_form_builder_form_associations() {
 
 /**
  * Transforms the OBJ datastream into the DERIVED datastream.
+ *
+ * @param AbstractObject $object
+ *   The object passed in.
+ * @param bool $force
+ *   Whether or not generation is being forced.
+ * @param $hook
+ *   The hook in question.
+ *
+ * @return array
+ *   The message array from the results.
  */
 function batch_derivative_test_derive_derived_datastream($object, $force = FALSE, $hook) {
   if (isset($object['OBJ'])) {
@@ -73,8 +102,8 @@ function batch_derivative_test_derive_derived_datastream($object, $force = FALSE
       $derived->setContentFromString($object['OBJ']->content . " DERIVED");
       $object->ingestDatastream($derived);
     }
-    else {
-      $object['DERIVED']->setContentFromString($object['OBJ']->content . " DERIVED");;
+    elseif ($force) {
+      $object['DERIVED']->setContentFromString($object['OBJ']->content . " DERIVED");
     }
     $success = TRUE;
     $message = "Derived DERIVED datastream for @obj.";

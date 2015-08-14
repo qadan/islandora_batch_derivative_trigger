@@ -32,4 +32,5 @@ script:
   - ant -buildfile sites/all/modules/islandora_batch_derivative_trigger/build.xml lint
   - $ISLANDORA_DIR/tests/scripts/line_endings.sh sites/all/modules/islandora_batch_derivative_trigger
   - drush coder-review --reviews=production,security,style,i18n,potx,sniffer islandora_batch_derivative_trigger
+  - drush coder-review --reviews=production,security,style,i18n,potx,sniffer batch_derivative_test
   - phpcpd --names *.module,*.inc,*.test sites/all/modules/islandora_batch_derivative_trigger
