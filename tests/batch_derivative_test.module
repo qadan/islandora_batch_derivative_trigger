@@ -20,7 +20,7 @@ function batch_derivative_test_islandora_required_objects(IslandoraTuque $connec
   $ds_cm = $cm->constructDatastream('DS-COMPOSITE-MODEL', 'X');
   $ds_cm->label = 'DS-COMPOSITE-MODEL';
   $ds_cm->mimetype = 'application/xml';
-  $ds_cm->setContentFromFile("$path/batch_derivative_test_ds_composite_model.xml");
+  $ds_cm->setContentFromFile("$path/batch_derivative_test_ds_composite_model.xml", FALSE);
   $cm->ingestDatastream($ds_cm);
 
   return array(
@@ -34,21 +34,23 @@ function batch_derivative_test_islandora_required_objects(IslandoraTuque $connec
 /**
  * Implements hook_cmodel_pid_islandora_derivative().
  */
-function batch_derivatives_test_islandora_batch_testcm_islandora_derivative() {
+function batch_derivative_test_islandora_batch_testcm_islandora_derivative() {
   return array(
-    'source_dsid' => 'OBJ',
-    'destination_dsid' => 'DERIVED',
-    'weight' => '0',
-    'function' => array(
-      'batch_derivatives_test_create_deriv_datastream',
+    array(
+      'source_dsid' => 'OBJ',
+      'destination_dsid' => 'DERIVED',
+      'weight' => '0',
+      'function' => array(
+        'batch_derivative_test_derive_derived_datastream',
+      ),
     ),
   );
 }
 
 /**
- * Implements hook_xml_form_builder_forms().
+ * Implements hook_islandora_xml_form_builder_forms().
  */
-function batch_derivative_test_xml_form_builder_forms() {
+function batch_derivative_test_islandora_xml_form_builder_forms() {
   return array(
     'Test Form' => array(
       'form_file' => drupal_get_path('module', 'batch_derivative_test') . '/fixtures/batch_derivative_test_stub_form.xml',
@@ -57,18 +59,18 @@ function batch_derivative_test_xml_form_builder_forms() {
 }
 
 /**
- * Implements hook_xml_form_builder_get_transforms().
+ * Implements hook_islandora_xml_form_builder_get_transforms().
  */
-function batch_derivatives_test_xml_form_builder_get_transforms() {
+function batch_derivative_test_islandora_xml_form_builder_get_transforms() {
   return array(
     'mods_to_dc_duplicate.xsl' => drupal_get_path('module', 'batch_derivative_test') . '/fixtures/mods_to_dc_duplicate.xsl',
   );
 }
 
 /**
- * Implements hook_xml_form_builder_form_associations().
+ * Implements hook_islandora_xml_form_builder_form_associations().
  */
-function batch_derivative_test_xml_form_builder_form_associations() {
+function batch_derivative_test_islandora_xml_form_builder_form_associations() {
   return array(
     'batch_derivative_test_cm_mods_form' => array(
       'content_model' => 'islandora:batch_testCM',
@@ -94,11 +96,12 @@ function batch_derivative_test_xml_form_builder_form_associations() {
  * @return array
  *   The message array from the results.
  */
-function batch_derivative_test_derive_derived_datastream($object, $force = FALSE, $hook) {
+function batch_derivative_test_derive_derived_datastream($object, $force = FALSE) {
   if (isset($object['OBJ'])) {
     if (!isset($object['DERIVED'])) {
       $derived = $object->constructDatastream('DERIVED', 'M');
       $derived->mimetype = 'text/plain';
+      $derived->label = 'DERIVED Datastream';
       $derived->setContentFromString($object['OBJ']->content . " DERIVED");
       $object->ingestDatastream($derived);
     }

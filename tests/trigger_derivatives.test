@@ -5,7 +5,7 @@
  * SimpleTest derivative triggering.
  */
 
-class IslandoraBatchDerivativeTriggerDerivativesTestCase extends IslandoraCollectionWebTestCase {
+class IslandoraBatchDerivativeTriggerDerivativesTestCase extends IslandoraBatchDerivativeTriggerTestCase {
 
   /**
    * Test info.
@@ -19,19 +19,58 @@ class IslandoraBatchDerivativeTriggerDerivativesTestCase extends IslandoraCollec
   }
 
   /**
-   * Setup phase.
-   *
-   * @see DrupalWebTestCase::setUp()
+   * Tests generation where the DERIVE datastream doesn't exist.
    */
-  protected function setUp() {
-    return array(
-      'islandora_basic_collection',
-      'islandora_batch_derivative_trigger',
-      'batch_derivative_test',
-    );
+  protected function testDeriveNotExisting() {
+    $object = $this->ingestBatchDerivativeTestObject(FALSE, TRUE);
   }
 
   /**
-   * Ingests a test object with a possible datastream.
+   * Tests generation where the DERIVE datastream exists.
    */
+  protected function testDeriveExisting() {
+    $object = $this->ingestBatchDerivativeTestObject(FALSE, TRUE, TRUE);
+  }
+
+  /**
+   * Tests forced generation where the DERIVE datastream doesn't exist.
+   */
+  protected function testForceDeriveNotExisting() {
+    $object = $this->ingestBatchDerivativeTestObject(FALSE, TRUE);
+  }
+
+  /**
+   * Tests forced generation where the DERIVE datastream exists.
+   */
+  protected function testForceDeriveExisting() {
+    $object = $this->ingestBatchDerivativeTestObject(FALSE, TRUE, TRUE);
+  }
+
+  /**
+   * Tests generating all where the DERIVE datastream doesn't exist.
+   */
+  protected function testCollectionDeriveNotExisting() {
+    $object = $this->ingestBatchDerivativeTestObject(FALSE, TRUE);
+  }
+
+  /**
+   * Tests generating all where the DERIVE datastream exists.
+   */
+  protected function testCollectionDeriveExisting() {
+    $object = $this->ingestBatchDerivativeTestObject(FALSE, TRUE, TRUE);
+  }
+
+  /**
+   * Tests generating all where the DERIVE datastream doesn't exist.
+   */
+  protected function testCollectionForceDeriveNotExisting() {
+    $object = $this->ingestBatchDerivativeTestObject(FALSE, TRUE);
+  }
+
+  /**
+   * Tests forced generation where the DERIVE datastream exists.
+   */
+  protected function testCollectionForceDeriveExisting() {
+    $object = $this->ingestBatchDerivativeTestObject(FALSE, TRUE, TRUE);
+  }
 }
