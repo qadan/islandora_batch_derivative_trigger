@@ -10,7 +10,7 @@ class IslandoraBatchDerivativeTriggerTestCase extends IslandoraCollectionWebTest
   /**
    * Sets up the tests.
    *
-   * @see IslandoraWebTestCase::setUp().
+   * @see IslandoraWebTestCase::setUp()
    */
   public function setUp() {
     parent::setUp(array('islandora', 'batch_derivative_test'));
@@ -21,7 +21,7 @@ class IslandoraBatchDerivativeTriggerTestCase extends IslandoraCollectionWebTest
   /**
    * Test tearDown functionality.
    *
-   * @see IslandoraWebTestCase::tearDown().
+   * @see IslandoraWebTestCase::tearDown()
    */
   public function tearDown() {
     $this->deleteTestCollection($this->testCollection);

@@ -1,0 +1,6 @@
+<?php
+
+/**
+ * @file
+ * Tests to trigger metadata regeneration.
+ */
