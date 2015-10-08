@@ -78,4 +78,62 @@ class IslandoraBatchDerivativeTriggerTestCase extends IslandoraCollectionWebTest
     // Return the object.
     return $object;
   }
+
+  /**
+   * Fills out the batch derivative regeneration form and submits it.
+   *
+   * @param string $collection_pid
+   *   The PID of the collection to trigger derivatives for.
+   * @param string $content_model
+   *   The content model to trigger for.
+   * @param string[] $dsids
+   *   An array of DSID strings to regenerate.
+   * @param bool|string[] $pids
+   *   An array of PID strings to regenerate for, or TRUE to regenerate all.
+   * @param bool $force
+   *   Whether or not to force triggering.
+   */
+  protected function triggerBatchDerivatives($collection_pid, $content_model, $dsids, $pids = TRUE, $force = FALSE) {
+    // Regenerate the page based on content model.
+    $path = "islandora/object/$collection_pid/manage/collection";
+    $edit = array(
+      'content_model' => $content_model,
+    );
+    $this->drupalPostAJAX($path, $edit, 'content_model', NULL, array(), array(), 'islandora-batch-derivative-trigger-regenerate-derivatives-form');
+
+    // Fill out the rest of the form and submit it.
+    $edit = array();
+    $edit['generate_missing'] = $force;
+    $edit['dsids[]'] = $dsids;
+    if ($pids === TRUE) {
+      $this->drupalPost($path, $edit, t('Regenerate selected derivatives for all collection objects'), array(), array(), 'islandora-batch-derivative-trigger-regenerate-derivatives-form')
+    }
+    else {
+      $edit['children[]'] = $pids;
+      $this->drupalPost($path, $edit, t('Regenerate selected derivatives for selected objects'), array(), array(), 'islandora-batch-derivative-trigger-regenerate-derivatives-form');
+    }
+  }
+
+  /**
+   * Fills out the batch metadata regeneration form and submits it.
+   */
+  protected function triggerBatchMetadata($collection_pid, $content_model, $mapping, $pids = TRUE) {
+    // Regenerate the page based on content model.
+    $path = "islandora/object/$collection_pid/manage/collection";
+    $edit = array(
+      'content_model' => $content_model,
+    );
+    $this->drupalPostAJAX($path, $edit, 'content_model', NULL, array(), array(), 'islandora-batch-derivative-trigger-regenerate-metadata-form');
+
+    // Fill out the rest of the form and submit it.
+    $edit = array();
+    $edit['mapping'] = $mapping;
+    if ($pids === TRUE) {
+      $this->drupalPost($path, $edit, t('Regenerate DC metadata for all collection objects'), array(), array(), 'islandora-batch-derivative-trigger-regenerate-metadata-form');
+    }
+    else {
+      $edit['children[]'] = $pids;
+      $this->drupalPost($path, $edit, t('Regenerate DC metadata for selected objects'), array(), array(), 'islandora-batch-derivative-trigger-regenerate-metadata-form');
+    }
+  }
 }
