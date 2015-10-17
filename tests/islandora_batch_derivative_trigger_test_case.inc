@@ -13,8 +13,10 @@ class IslandoraBatchDerivativeTriggerTestCase extends IslandoraCollectionWebTest
    * @see IslandoraWebTestCase::setUp()
    */
   public function setUp() {
-    parent::setUp(array('islandora', 'batch_derivative_test'));
+    parent::setUp(array('islandora', 'batch_derivative_test', 'islandora_batch_derivative_trigger'));
     $this->testCollection = 'test:' . $this->randomName();
+    $user = $this->drupalCreateUser(array_keys(module_invoke_all('permission')));
+    $this->drupalLogin($user);
     $this->createTestCollection('Test Collection', array('islandora:batch_testCM'), $this->testCollection);
   }
 
@@ -36,19 +38,18 @@ class IslandoraBatchDerivativeTriggerTestCase extends IslandoraCollectionWebTest
    * @param bool $obj
    *   Whether or not to add an OBJ datastream.
    * @param bool $derive
-   *   Whether or not to add a DERIVE datastream.
+   *   Whether or not to add a DERIVED datastream if we were asked.
    */
-  protected function ingestBatchDerivativeTestObject($mods, $obj, $derive) {
+  protected function ingestBatchDerivativeTestObject($mods, $obj, $derive = FALSE) {
     // Base properties.
     $properties = array(
       'pid' => 'test',
       'label' => 'Test Object',
       'models' => array('islandora:batch_testCM'),
-      'owner' => $this->loggedInUser,
+      'owner' => $this->loggedInUser->name,
       'parent' => $this->testCollection,
     );
     $datastreams = array();
-
     // MODS datastream.
     if ($mods) {
       $datastreams[] = array(
@@ -58,7 +59,6 @@ class IslandoraBatchDerivativeTriggerTestCase extends IslandoraCollectionWebTest
         'mimetype' => 'text/xml',
       );
     }
-
     // OBJ datastream.
     if ($obj) {
       $datastreams[] = array(
@@ -69,7 +69,6 @@ class IslandoraBatchDerivativeTriggerTestCase extends IslandoraCollectionWebTest
       );
     }
 
-    // Ingest, then derive DERIVE datastream if we were asked.
     $object = $this->ingestConstructedObject($properties, $datastreams);
     if ($derive) {
       batch_derivative_test_derive_derived_datastream($object, FALSE);
@@ -104,9 +103,11 @@ class IslandoraBatchDerivativeTriggerTestCase extends IslandoraCollectionWebTest
     // Fill out the rest of the form and submit it.
     $edit = array();
     $edit['generate_missing'] = $force;
-    $edit['dsids[]'] = $dsids;
+    foreach ((array) $dsids as $dsid) {
+      $edit["dsids[$dsid]"] = TRUE;
+    }
     if ($pids === TRUE) {
-      $this->drupalPost($path, $edit, t('Regenerate selected derivatives for all collection objects'), array(), array(), 'islandora-batch-derivative-trigger-regenerate-derivatives-form')
+      $this->drupalPost($path, $edit, t('Regenerate selected derivatives for all collection objects'), array(), array(), 'islandora-batch-derivative-trigger-regenerate-derivatives-form');
     }
     else {
       $edit['children[]'] = $pids;

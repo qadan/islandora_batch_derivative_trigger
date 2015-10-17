@@ -74,7 +74,7 @@ function batch_derivative_test_islandora_xml_form_builder_form_associations() {
   return array(
     'batch_derivative_test_cm_mods_form' => array(
       'content_model' => 'islandora:batch_testCM',
-      'form_name' => 'Batch Test Form Association',
+      'form_name' => 'Test Form',
       'dsid' => 'MODS',
       'title_field' => array('titleInfo', 'title'),
       'transform' => 'No Transform',
