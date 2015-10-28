@@ -33,13 +33,13 @@ function islandora_batch_derivative_trigger_derivative_regeneration_batch_finish
  *   be generated.
  * @param AbstractObject $collection
  *   The collection we are generating derivatives for.
- * @param string $content_model
+ * @param array|string $content_models
  *   The content model to use in the case of a call to 'regenerate all'.
  *
  * @return array
  *   A Drupal batch array.
  */
-function islandora_batch_derivative_trigger_regenerate_derivatives_batch($children, $dsids, AbstractObject $collection, $content_model, $force = TRUE) {
+function islandora_batch_derivative_trigger_regenerate_derivatives_batch($children, $dsids, $collection, $content_models, $force = TRUE) {
   $batch = array(
     'finished' => 'islandora_batch_derivative_trigger_derivative_regeneration_batch_finished',
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
@@ -66,12 +66,12 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_batch($childr
   }
   else {
     $batch += array(
-      'title' => 'Regenerating selected derivatives for all children in the collection.',
-      'init_message' => 'Preparing to regenerate derivatives for all children in the collection. Be aware that if one or more DSIDs with longer processing times were selected, this may take a long time.',
+      'title' => 'Regenerating selected derivatives',
+      'init_message' => 'Preparing to regenerate derivatives. Be aware that if one or more DSIDs with longer processing times were selected, this may take a long time.',
       'operations' => array(
         array(
           'islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation',
-          array($dsids, $collection, $content_model),
+          array($dsids, $collection, $content_models),
         ),
       ),
     );
@@ -130,24 +130,25 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_batch_operati
  *   The DSIDs to regenerate derivatives for.
  * @param AbstractObject $collection
  *   The collection we are regenerating child derivatives in.
- * @param string $content_model
- *   The content model to regenerate all derivatives for.
+ * @param string|array $content_models
+ *   The content model(s) to regenerate all derivatives for.
  * @param array $context
  *   The batch context.
  */
-function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation(array $dsids, AbstractObject $collection, $content_model, &$context) {
+function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation(array $dsids, $collection, $content_models, &$context) {
   module_load_include('inc', 'islandora', 'includes/derivatives');
-  $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 1, 'manage', $content_model);
+  if (!isset($context['sandbox']['page'])) {
+    $context['sandbox']['page'] = 0;
+  }
+  $results = islandora_batch_derivative_trigger_query_relevant_objects($collection, (array) $content_models, $context['sandbox']['page'], 1);
   $context['sandbox']['page']++;
-  if ($results) {
-    list ($count, $members) = $results;
+  if (count($results) > 0) {
     if (!isset($context['sandbox']['current'])) {
-      $context['sandbox']['total_count'] = $count;
-      $context['sandbox']['current'] = 0;
+      $context['sandbox']['total_count'] = islandora_batch_derivative_trigger_query_relevant_objects($collection, (array) $content_models, NULL, NULL, TRUE);
     }
-    foreach ($members as $result) {
-      $child = $result['object']['value'];
-      if ($child && $child = islandora_object_load($child)) {
+    foreach ($results as $result) {
+      $child = islandora_object_load($result);
+      if ($child) {
         foreach ($dsids as $dsid) {
           $logs = islandora_do_derivatives($child, array(
             'force' => TRUE,
@@ -165,9 +166,8 @@ function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_ope
             }
           }
         }
-        $context['sandbox']['current']++;
         $context['message'] = t('@current_num/@total: Regenerated selected derivatives for @pid (type: @cmodel, collection: @source).', array(
-          '@current_num' => $context['sandbox']['current'],
+          '@current_num' => $context['sandbox']['page'],
           '@total' => $context['sandbox']['total_count'],
           '@cmodel' => $content_model,
           '@source' => $collection->label,
@@ -359,4 +359,57 @@ function islandora_batch_derivative_trigger_regenerate_dc_metadata(AbstractObjec
     '@child' => $child->id,
     '@source' => $source,
   ));
+}
+
+/**
+ * Queries objects to regenerate.
+ *
+ * @param AbstractObject|null $collection
+ *   A possible collection to filter by.
+ * @param array|null $cmodels
+ *   Possible content models to filter by.
+ * @param int $offset
+ *   An offset to start at.
+ * @param int $limit
+ *   A limit to set.
+ * @param bool $count
+ *   Whether or not this is a countQuery.
+ */
+function islandora_batch_derivative_trigger_query_relevant_objects($collection, $cmodels, $offset, $limit, $count = FALSE) {
+  $q = <<<EOQ
+SELECT DISTINCT ?pid
+FROM <#ri>
+WHERE {
+EOQ;
+  if (!is_null($collection)) {
+    $q .= "\n ?pid <fedora-rels-ext:isMemberOfCollection> <info:fedora/{$collection->id}> ;\n";
+  }
+  $cmodels = (array) $cmodels;
+  $first_cmodel = array_shift($cmodels);
+  if (!is_null($first_cmodel)) {
+    $q .= " { ?pid <fedora-model:hasModel> <info:fedora/$first_cmodel> }";
+    foreach ((array) $cmodels as $cmodel) {
+      $q .= " UNION { ?pid <fedora-model:hasModel> <info:fedora/$cmodel> }";
+    }
+  }
+  $q .= "\n}";
+  if (!is_null($offset)) {
+    $q .= "\nOFFSET $offset";
+  }
+  if (!is_null($limit)) {
+    $q .= "\nLIMIT $limit";
+  }
+
+  $connection = islandora_get_tuque_connection();
+  if (!$count) {
+    $objects = array();
+    $results = $connection->repository->ri->sparqlQuery($q);
+    foreach ($results as $result) {
+      $objects[] = $result['pid']['value'];
+    }
+  }
+  else {
+    $objects = $connection->repository->ri->countQuery($q, 'sparql');
+  }
+  return $objects;
 }

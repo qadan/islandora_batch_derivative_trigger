@@ -95,6 +95,7 @@ function islandora_batch_derivative_trigger_prep_datastream_regeneration() {
   $return = array();
   $collection = drush_get_option('collection');
   $pids = islandora_batch_derivative_trigger_get_option_array_or_null(drush_get_option('pids'));
+  $content_models = islandora_batch_derivative_trigger_get_option_array_or_null(drush_get_option('content_models'));
   $return['pids'] = $pids;
   if (!is_null($collection)) {
     $collection = islandora_object_load($collection);
@@ -103,7 +104,6 @@ function islandora_batch_derivative_trigger_prep_datastream_regeneration() {
       return FALSE;
     }
     $return['collection'] = $collection;
-    $content_models = islandora_batch_derivative_trigger_get_option_array_or_null(drush_get_option('content_models'));
     if (!is_array($content_models)) {
       module_load_include('inc', 'islandora_batch_derivative_trigger', 'includes/utilities');
       $content_models = array();
@@ -111,6 +111,10 @@ function islandora_batch_derivative_trigger_prep_datastream_regeneration() {
         $content_models[] = $content_model['pid'];
       }
     }
+    $return['content_models'] = $content_models;
+  }
+  elseif (is_array($content_models)) {
+    $return['collection'] = NULL;
     $return['content_models'] = $content_models;
   }
   elseif (is_null($pids)) {
@@ -136,12 +140,14 @@ function drush_islandora_batch_derivative_trigger_regenerate_derivatives() {
     batch_set(islandora_batch_derivative_trigger_regenerate_derivatives_batch($batch_info['pids'], $dsids, NULL, NULL, $force));
   }
   else {
-    foreach ($batch_info['content_models'] as $content_model) {
-      if (!is_array($dsids)) {
-        $dsids = array_keys(islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list($content_model));
+    if (!is_array($dsids)) {
+      $dsids = array();
+      foreach ($batch_info['content_models'] as $content_model) {
+        $dsids += array_keys(islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list($content_model));
       }
-      batch_set(islandora_batch_derivative_trigger_regenerate_derivatives_batch(NULL, $dsids, $batch_info['collection'], $content_model, $force));
+      $dsids = array_unique($dsids);
     }
+    batch_set(islandora_batch_derivative_trigger_regenerate_derivatives_batch(NULL, $dsids, $batch_info['collection'], $batch_info['content_models'], $force));
   }
   drush_backend_batch_process();
 }
