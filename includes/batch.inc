@@ -166,11 +166,11 @@ function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_ope
             }
           }
         }
-        $context['message'] = t('@current_num/@total: Regenerated selected derivatives for @pid (type: @cmodel, collection: @source).', array(
+        $context['message'] = t('@current_num/@total: Regenerated selected derivatives for @pid (type: @cmodel@source).', array(
           '@current_num' => $context['sandbox']['page'],
           '@total' => $context['sandbox']['total_count'],
-          '@cmodel' => $content_model,
-          '@source' => $collection->label,
+          '@cmodel' => $child->models[0],
+          '@source' => (is_null($collection)) ? '' : ", source: {$collection->label}",
           '@pid' => $child->id,
         ));
       }
