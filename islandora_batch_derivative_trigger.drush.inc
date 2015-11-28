@@ -16,15 +16,15 @@ function islandora_batch_derivative_trigger_drush_command() {
       'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
       'options' => array(
         'pids' => array(
-          'description' => dt('A comma-separated list of PIDs to regenerate derivatives for.'),
+          'description' => dt('A comma-separated list of PIDs to regenerate derivatives for. Overrides the collection and content_models options.'),
           'required' => FALSE,
         ),
         'collection' => array(
-          'description' => dt('The PID of a collection to target for derivative regeneration.'),
+          'description' => dt('The PID of a collection to target for derivative regeneration. Overridden if a PID list is supplied.'),
           'required' => FALSE,
         ),
         'content_models' => array(
-          'description' => dt('An optional comma-separated list of PIDs of content models to filter derivative regeneration for.'),
+          'description' => dt('An optional comma-separated list of PIDs of content models to filter derivative regeneration for. Overridden if a PID list is supplied.'),
           'required' => FALSE,
         ),
         'dsids' => array(
@@ -136,18 +136,15 @@ function drush_islandora_batch_derivative_trigger_regenerate_derivatives() {
   }
   module_load_include('inc', 'islandora_batch_derivative_trigger', 'includes/batch');
   $dsids = islandora_batch_derivative_trigger_get_option_array_or_null(drush_get_option('dsids'));
-  if (is_array($batch_info['pids'])) {
-    batch_set(islandora_batch_derivative_trigger_regenerate_derivatives_batch($batch_info['pids'], $dsids, NULL, NULL, $force));
-  }
-  else {
-    if (!is_array($dsids)) {
-      $dsids = array();
-      foreach ($batch_info['content_models'] as $content_model) {
-        $dsids += array_keys(islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list($content_model));
-      }
-      $dsids = array_unique($dsids);
+  batch_set(islandora_batch_derivative_trigger_regenerate_derivatives_batch($batch_info['pids'], $dsids, $batch_info['collection'], $batch_info['content_models'], $force));
+  if (!is_array($dsids)) {
+    $dsids = array();
+    foreach ($batch_info['content_models'] as $content_model) {
+      $dsids += array_keys(islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list($content_model));
     }
-    batch_set(islandora_batch_derivative_trigger_regenerate_derivatives_batch(NULL, $dsids, $batch_info['collection'], $batch_info['content_models'], $force));
+    $dsids = array_unique($dsids);
+  }
+  batch_set(islandora_batch_derivative_trigger_regenerate_derivatives_batch($batch_info['pids'], $dsids, $batch_info['collection'], $batch_info['content_models'], $force));
   }
   drush_backend_batch_process();
 }

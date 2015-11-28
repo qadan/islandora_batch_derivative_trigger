@@ -26,8 +26,8 @@ function islandora_batch_derivative_trigger_derivative_regeneration_batch_finish
 /**
  * Generates a batch for regenerating derivatives.
  *
- * @param string[] $children
- *   An array of child PIDS to regenerate derivatives for.
+ * @param string[]|null $children
+ *   An array of child PIDs to regenerate derivatives for, or NULL to run
  * @param string[] $dsids
  *   An array of DSIDs representing the derivative destination DSIDs that should
  *   be generated.
@@ -64,14 +64,14 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_batch($childr
       );
     }
   }
-  else {
+  elseif (is_object($collection)) {
     $batch += array(
       'title' => 'Regenerating selected derivatives',
       'init_message' => 'Preparing to regenerate derivatives. Be aware that if one or more DSIDs with longer processing times were selected, this may take a long time.',
       'operations' => array(
         array(
           'islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation',
-          array($dsids, $collection, $content_models),
+          array($dsids, $collection, $content_models, $force),
         ),
       ),
     );
@@ -135,7 +135,7 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_batch_operati
  * @param array $context
  *   The batch context.
  */
-function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation(array $dsids, $collection, $content_models, &$context) {
+function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation(array $dsids, $collection, $content_models, $force, &$context) {
   module_load_include('inc', 'islandora', 'includes/derivatives');
   if (!isset($context['sandbox']['page'])) {
     $context['sandbox']['page'] = 0;
@@ -151,7 +151,7 @@ function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_ope
       if ($child) {
         foreach ($dsids as $dsid) {
           $logs = islandora_do_derivatives($child, array(
-            'force' => TRUE,
+            'force' => $force,
             'destination_dsid' => $dsid,
           ));
           $context['results'][] = $logs;

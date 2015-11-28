@@ -200,7 +200,6 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_form_validate
  */
 function islandora_batch_derivative_trigger_regenerate_derivatives_form_submit(array $form, array &$form_state) {
   $clicked_button = end($form_state['clicked_button']['#parents']);
-  $collection = $form_state['collection'];
   if ($clicked_button === 'submit_all') {
     $children = NULL;
   }
@@ -208,7 +207,13 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_form_submit(a
     $children = array_keys(array_filter($form_state['values']['children']));
   }
   module_load_include('inc', 'islandora_batch_derivative_trigger', 'includes/batch');
-  $batch = islandora_batch_derivative_trigger_regenerate_derivatives_batch($children, array_keys(array_filter($form_state['values']['dsids'])), $collection, $form_state['values']['content_model'], (bool) $form_state['values']['generate_missing']);
+  $batch = islandora_batch_derivative_trigger_regenerate_derivatives_batch(
+    $children,
+    array_keys(array_filter($form_state['values']['dsids'])),
+    $form_state['collection'],
+    array($form_state['values']['content_model']),
+    (bool) $form_state['values']['generate_missing']
+  );
   batch_set($batch);
 }
 
