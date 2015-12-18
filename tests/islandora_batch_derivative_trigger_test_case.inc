@@ -13,7 +13,11 @@ class IslandoraBatchDerivativeTriggerTestCase extends IslandoraCollectionWebTest
    * @see IslandoraWebTestCase::setUp()
    */
   public function setUp() {
-    parent::setUp(array('islandora', 'batch_derivative_test', 'islandora_batch_derivative_trigger'));
+    parent::setUp(array(
+      'islandora',
+      'batch_derivative_test',
+      'islandora_batch_derivative_trigger',
+    ));
     $this->testCollection = 'test:' . $this->randomName();
     $user = $this->drupalCreateUser(array_keys(module_invoke_all('permission')));
     $this->drupalLogin($user);
