@@ -89,9 +89,9 @@ function islandora_batch_derivative_trigger_drush_command() {
 }
 
 /**
- * Preps the regeneration of derivative or metadata datastreams.
+ * Populates a basic $batch_info array based on set drush options.
  */
-function islandora_batch_derivative_trigger_prep_datastream_regeneration() {
+function islandora_batch_derivative_trigger_get_basic_batch_info() {
   $return = array();
   $collection = drush_get_option('collection');
   $pids = islandora_batch_derivative_trigger_get_option_array_or_null(drush_get_option('pids'));
@@ -130,7 +130,7 @@ function islandora_batch_derivative_trigger_prep_datastream_regeneration() {
 function drush_islandora_batch_derivative_trigger_regenerate_derivatives() {
   $force = drush_get_option('skip_existing');
   $force = is_null($force) ? TRUE : FALSE;
-  $batch_info = islandora_batch_derivative_trigger_prep_datastream_regeneration();
+  $batch_info = islandora_batch_derivative_trigger_get_basic_batch_info();
   if (!$batch_info) {
     return;
   }
@@ -153,7 +153,7 @@ function drush_islandora_batch_derivative_trigger_regenerate_derivatives() {
  * Drush command for metadata regeneration.
  */
 function drush_islandora_batch_derivative_trigger_regenerate_dc_metadata() {
-  $batch_info = islandora_batch_derivative_trigger_prep_datastream_regeneration();
+  $batch_info = islandora_batch_derivative_trigger_get_basic_batch_info();
   if (!$batch_info) {
     return;
   }
@@ -232,7 +232,7 @@ function drush_islandora_batch_derivative_trigger_get_metadata_mappings() {
     }
     else {
       foreach ($xslts as $xslt) {
-        drush_print($xslt);
+        drush_print($xslt . "\n");
       }
     }
   }
