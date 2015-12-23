@@ -28,6 +28,7 @@ before_install:
   - drush en --user=1 --yes islandora_basic_collection
   - drush en --user=1 --yes xml_form_builder
   - drush en --user=1 --yes islandora_batch_derivative_trigger
+  - sudo apt-get update
   - sudo apt-cache search lame
   - cat /etc/apt/sources.list
 script:
