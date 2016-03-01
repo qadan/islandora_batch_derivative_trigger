@@ -129,7 +129,7 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_form_get_deri
   if ($content_model) {
     module_load_include('inc', 'islandora', 'includes/utilities');
     $dsids = array();
-    foreach (islandora_invoke_hook_list(ISLANDORA_DERVIATIVE_CREATION_HOOK, array($content_model), array()) as $derivative_hook) {
+    foreach (islandora_invoke_hook_list(ISLANDORA_DERIVATIVE_CREATION_HOOK, array($content_model), array()) as $derivative_hook) {
       $dsids[$derivative_hook['destination_dsid']] = array('dsid' => $derivative_hook['destination_dsid']);
     }
     return $dsids;
