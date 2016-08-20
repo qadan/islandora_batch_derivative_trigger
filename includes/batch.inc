@@ -137,47 +137,44 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_batch_operati
  */
 function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation(array $dsids, $collection, $content_models, $force, &$context) {
   module_load_include('inc', 'islandora', 'includes/derivatives');
-  if (!isset($context['sandbox']['page'])) {
-    $context['sandbox']['page'] = 0;
+  $sandbox = &$context['sandbox'];
+  if (empty($sandbox)) {
+    $sandbox['current'] = 0;
+    $sandbox['total_count'] = islandora_batch_derivative_trigger_query_relevant_objects($collection, (array) $content_models, NULL, NULL, TRUE);
   }
-  $results = islandora_batch_derivative_trigger_query_relevant_objects($collection, (array) $content_models, $context['sandbox']['page'], 1);
-  $context['sandbox']['page']++;
-  if (count($results) > 0) {
-    if (!isset($context['sandbox']['current'])) {
-      $context['sandbox']['total_count'] = islandora_batch_derivative_trigger_query_relevant_objects($collection, (array) $content_models, NULL, NULL, TRUE);
-    }
-    foreach ($results as $result) {
-      $child = islandora_object_load($result);
-      if ($child) {
-        foreach ($dsids as $dsid) {
-          $logs = islandora_do_derivatives($child, array(
-            'force' => $force,
-            'destination_dsid' => $dsid,
-          ));
-          $context['results'][] = $logs;
-          foreach ((array) $logs as $log) {
-            foreach ($log['messages'] as $message) {
-              $return = $message['message'];
-              $message_sub = isset($message['message_sub']) ? $message['message_sub'] : array();
-              foreach ($message_sub as $sub => $value) {
-                $return = str_replace($sub, $value, $return);
-              }
-              $context['message'] = $return;
+  $results = islandora_batch_derivative_trigger_query_relevant_objects($collection, (array) $content_models, $sandbox['current'], 1);
+  $sandbox['current']++;
+  foreach ($results as $result) {
+    $child = islandora_object_load($result);
+    if ($child) {
+      foreach ($dsids as $dsid) {
+        $logs = islandora_do_derivatives($child, array(
+          'force' => $force,
+          'destination_dsid' => $dsid,
+        ));
+        $context['results'][] = $logs;
+        foreach ((array) $logs as $log) {
+          foreach ($log['messages'] as $message) {
+            $return = $message['message'];
+            $message_sub = isset($message['message_sub']) ? $message['message_sub'] : array();
+            foreach ($message_sub as $sub => $value) {
+              $return = str_replace($sub, $value, $return);
             }
+            $context['message'] = $return;
           }
         }
-        $context['message'] = t('@current_num/@total: Regenerated selected derivatives for @pid (type: @cmodel@source).', array(
-          '@current_num' => $context['sandbox']['page'],
-          '@total' => $context['sandbox']['total_count'],
-          '@cmodel' => $child->models[0],
-          '@source' => (is_null($collection)) ? '' : ", source: {$collection->label}",
-          '@pid' => $child->id,
-        ));
       }
+      $context['message'] = t('@current_num/@total: Regenerated selected derivatives for @pid (type: @cmodel@source).', array(
+        '@current_num' => $sandbox['current'],
+        '@total' => $sandbox['total_count'],
+        '@cmodel' => $child->models[0],
+        '@source' => (is_null($collection)) ? '' : ", source: {$collection->label}",
+        '@pid' => $child->id,
+      ));
     }
   }
 
-  $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
+  $context['finished'] = $sandbox['current'] / $sandbox['total_count'];
 }
 
 /**
