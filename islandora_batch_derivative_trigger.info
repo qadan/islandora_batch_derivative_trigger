@@ -9,5 +9,5 @@ files[] = includes/utilities.inc
 files[] = tests/islandora_batch_derivative_trigger_test_case.inc
 files[] = tests/trigger_derivatives.test
 files[] = tests/trigger_metadata.test
-version = 7.x-1.0
+version = 7.x-dev
 core = 7.x
