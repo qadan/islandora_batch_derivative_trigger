@@ -28,11 +28,11 @@ function islandora_batch_derivative_trigger_drush_command() {
           'required' => FALSE,
         ),
         'dsids' => array(
-          'description' => dt('An optional comma-separated list of DSIDs to filter derivative regeneration by.'),
+          'description' => dt('An optional comma-separated list of destination DSIDs to filter derivative regeneration by.'),
           'required' => FALSE,
         ),
-        'skip_existing' => array(
-          'description' => dt('Whether or not to generate every derivative, even if it already exists on the object; defaults to "false", and pretty much any value given here will set it as "true".'),
+        'force' => array(
+          'description' => dt('Whether or not to force generation for every derivative, even if it already exists on the object; defaults to "false", and pretty much any value given here will set it as "true".'),
           'required' => FALSE,
         ),
       ),
@@ -128,8 +128,8 @@ function islandora_batch_derivative_trigger_get_basic_batch_info() {
  * Command executor for derivative regeneration.
  */
 function drush_islandora_batch_derivative_trigger_regenerate_derivatives() {
-  $force = drush_get_option('skip_existing');
-  $force = is_null($force) ? TRUE : FALSE;
+  $force = drush_get_option('force');
+  $force = is_null($force) ? FALSE : TRUE;
   $batch_info = islandora_batch_derivative_trigger_get_basic_batch_info();
   if (!$batch_info) {
     return;
