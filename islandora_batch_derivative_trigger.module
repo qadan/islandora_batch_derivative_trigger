@@ -55,7 +55,7 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_form(array $f
       '#suffix' => '</div>',
       'generate_missing' => array(
         '#type' => 'checkbox',
-        '#title' => t("Generate only if missing"),
+        '#title' => t("Force generation"),
         '#default_value' => 'unchecked',
       ),
       'content_model' => array(
