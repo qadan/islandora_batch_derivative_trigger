@@ -166,6 +166,5 @@ EOQ;
   if ($count) {
     return $connection->repository->ri->countQuery($formatted_query, 'sparql');
   }
-  dd($formatted_query);
   return $connection->repository->ri->sparqlQuery($formatted_query, $limit);
 }
