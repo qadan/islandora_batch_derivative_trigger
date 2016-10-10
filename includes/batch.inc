@@ -220,7 +220,7 @@ function islandora_batch_derivative_trigger_regenerate_metadata_batch($children,
   else {
     $batch += array(
       'title' => 'Regenerating DC metadata for all children.',
-      'init_message' => 'Preparing to regenerate DC metadata for all children.',
+      'init_message' => 'Preparing to regenerate DC metadata for all children. Bear in mind that the total count may change if the collection is actively being modified.',
       'operations' => array(
         array(
           'islandora_batch_derivative_trigger_regenerate_all_metadata_batch_operation',
@@ -272,26 +272,46 @@ function islandora_batch_derivative_trigger_regenerate_metadata_batch_operation(
  *   The batch context.
  */
 function islandora_batch_derivative_trigger_regenerate_all_metadata_batch_operation($mapping, $collection, $content_model, &$context) {
-  $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 1, 'manage', $content_model);
-  $context['sandbox']['page']++;
-  if ($results) {
-    list ($count, $members) = $results;
-    if (!isset($context['sandbox']['current'])) {
-      $context['sandbox']['total_count'] = $count;
-      $context['sandbox']['current'] = 0;
-    }
-    foreach ($members as $result) {
-      $child = $result['object']['value'];
-      if ($child && $child = islandora_object_load($child)) {
+  $sandbox = &$context['sandbox'];
+  module_load_include('inc', 'islandora_batch_derivative_trigger', 'includes/utilities');
+  if (empty($sandbox)) {
+    $sandbox['slice'] = NULL;
+    // We don't really use this, it's mostly just for interface reporting.
+    $sandbox['current'] = 0;
+  }
+  // The 'total' represents a potentially moving target; recalculating and
+  // constantly updating our slice keeps things accurate.
+  $sandbox['total'] = islandora_batch_derivative_trigger_get_member_objects($collection, $content_model, NULL, NULL, TRUE);
+  // Bail if the collection is empty.
+  if ($sandbox['total'] == 0) {
+    $context['message'] = t('No items to process in collection @collection (@id) for content model @cmodel.', array(
+      '@collection' => $collection->label,
+      '@id' => $collection->id,
+      '@cmodel' => $content_model,
+    ));
+    $context['finished'] = 1;
+    return;
+  }
+
+  $results = islandora_batch_derivative_trigger_get_member_objects($collection, $content_model, $sandbox['slice'], 10);
+  if (!empty($results)) {
+    // Iterate through the results.
+    foreach ($results as $member) {
+      $child = islandora_object_load($member['object']['value']);
+      $sandbox['slice'] = array(
+        'date' => $member['created']['value'],
+        'pid' => $member['object']['value'],
+      );
+      $sandbox['current']++;
+      $subs = array(
+        '@current_num' => $sandbox['current'],
+        '@total' => $sandbox['total'],
+        '@cmodel' => $content_model,
+        '@source' => $collection->label,
+        '@pid' => $member['object']['value'],
+      );
+      if ($child) {
         $result = islandora_batch_derivative_trigger_regenerate_dc_metadata($child, $mapping);
-        $context['sandbox']['current']++;
-        $subs = array(
-          '@current_num' => $context['sandbox']['current'],
-          '@total' => $context['sandbox']['total_count'],
-          '@cmodel' => $content_model,
-          '@source' => $collection->label,
-          '@pid' => $child->id,
-        );
         if (is_string($result)) {
           $subs['@result'] = $result;
           $context['message'] = t("@current_num/@total: Error: @result", $subs);
@@ -300,10 +320,17 @@ function islandora_batch_derivative_trigger_regenerate_all_metadata_batch_operat
           $context['message'] = t('@current_num/@total: Regenerated DC metadata for @pid (type: @cmodel, collection: @source).', $subs);
         }
       }
+      else {
+        $context['message'] = t('@current_num/@total: Error: failed to load @pid.');
+      }
     }
+    $context['finished'] = $sandbox['current'] / $sandbox['total'];
+  }
+  else {
+    // Prevent iterating through another set.
+    $context['finished'] = 1;
   }
 
-  $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
 }
 
 /**

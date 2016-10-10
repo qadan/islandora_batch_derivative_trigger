@@ -111,3 +111,61 @@ function islandora_batch_derivative_trigger_get_children_select_table_form_eleme
     '#suffix' => $pager,
   );
 }
+
+/**
+ * Gets a collection's member objects.
+ *
+ * The islandora_basic_collection_get_member_objects() function has a lot of
+ * overhead we don't need, and can only provide counts for slices. Recreating
+ * it here, minus the bits we don't use.
+ *
+ * @param string $collection
+ *   The PID of the collection.
+ * @param string $content_model
+ *   The content model of the children to get.
+ * @param array|null $slice
+ *   An array containing 'date' and 'pid' as slice parameters to offset by, or
+ *   NULL to omit.
+ * @param int $limit
+ *   The number of results to return. Ignored for count queries.
+ * @param bool $count
+ *   Whether to perform a countQuery() this time around.
+ *
+ * @return array|int
+ *   A Tuque RepositoryQuery::sparqlQuery() results array with 'created' and
+ *   'object', or a count integer if $count was TRUE.
+ */
+function islandora_batch_derivative_trigger_get_member_objects($collection, $content_model, $slice, $limit = 10, $count = FALSE) {
+  // Build our query.
+  $query = <<<EOQ
+PREFIX xs: <xml-schema:>
+SELECT DISTINCT ?object ?created
+FROM <#ri>
+WHERE {
+  ?object <fedora-model:hasModel> <info:fedora/$content_model> ;
+          <fedora-rels-ext:isMemberOfCollection> <info:fedora/$collection> ;
+          <fedora-model:createdDate> ?created .
+  !filter
+}
+!order
+EOQ;
+  if (is_array($slice)) {
+    $filter = "FILTER(?created > '{$slice['date']}'^^xs:dateTime || (?created = '{$slice['date']}'^^xs:dateTime && xs:string(?object) > xs:string('info:fedora/{$slice['pid']}')))";
+  }
+  else {
+    $filter = '';
+  }
+  $formatted_query = format_string($query, array(
+    '!filter' => $filter,
+    '!order' => $count ? '' : "ORDER BY ASC(?created) ASC(?object)",
+  ));
+
+  // Tuquetime.
+  $connection = islandora_get_tuque_connection();
+  // Get the count if that's what we were asked.
+  if ($count) {
+    return $connection->repository->ri->countQuery($formatted_query, 'sparql');
+  }
+  dd($formatted_query);
+  return $connection->repository->ri->sparqlQuery($formatted_query, $limit);
+}
