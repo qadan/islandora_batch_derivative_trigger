@@ -133,7 +133,8 @@ function islandora_batch_derivative_trigger_get_children_select_table_form_eleme
  *
  * @return array|int
  *   A Tuque RepositoryQuery::sparqlQuery() results array with 'created' and
- *   'object', or a count integer if $count was TRUE.
+ *   'object' as the createdDate and PID of the object, or a count integer if
+ *   $count was TRUE.
  */
 function islandora_batch_derivative_trigger_get_member_objects($collection, $content_model, $slice, $limit = 10, $count = FALSE) {
   // Build our query.

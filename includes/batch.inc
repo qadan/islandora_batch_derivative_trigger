@@ -68,13 +68,14 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_batch($childr
     $batch += array(
       'title' => 'Regenerating selected derivatives',
       'init_message' => 'Preparing to regenerate derivatives. Be aware that if one or more DSIDs with longer processing times were selected, this may take a long time.',
-      'operations' => array(
-        array(
-          'islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation',
-          array($dsids, $collection, $content_models, $force),
-        ),
-      ),
+      'operations' => array(),
     );
+    foreach ((array) $content_models as $content_model) {
+      $operations[] = array(
+        'islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation',
+        array($dsids, $collection, $content_model, $force),
+      );
+    }
   }
   return $batch;
 }
@@ -130,22 +131,51 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_batch_operati
  *   The DSIDs to regenerate derivatives for.
  * @param AbstractObject $collection
  *   The collection we are regenerating child derivatives in.
- * @param string|array $content_models
- *   The content model(s) to regenerate all derivatives for.
+ * @param string $content_model
+ *   The content model to regenerate all derivatives for.
  * @param array $context
  *   The batch context.
  */
-function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation(array $dsids, $collection, $content_models, $force, &$context) {
+function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation(array $dsids, $collection, $content_model, $force, &$context) {
   module_load_include('inc', 'islandora', 'includes/derivatives');
+  module_load_include('inc', 'islandora_batch_derivative_trigger', 'includes/utilities');
   $sandbox = &$context['sandbox'];
+  // Initial prep.
   if (empty($sandbox)) {
+    // Get the count.
+    $sandbox['total_count'] = islandora_batch_derivative_trigger_get_member_objects($collection, $content_model, NULL, NULL, TRUE);
+    // Exit if there weren't any results.
+    if (!$sandbox['total_count']) {
+      $context['message'] = t('No objects found in collection @collection with content model @model.', array(
+        '@collection' => $collection,
+        '@model' => $content_model,
+      ));
+      $context['finished'] = 1;
+      return;
+    }
+    // Keep a current for display purposes.
     $sandbox['current'] = 0;
-    $sandbox['total_count'] = islandora_batch_derivative_trigger_query_relevant_objects($collection, (array) $content_models, NULL, NULL, TRUE);
+    // Hang onto some slice information.
+    $sandbox['slice'] = NULL;
   }
-  $results = islandora_batch_derivative_trigger_query_relevant_objects($collection, (array) $content_models, $sandbox['current'], 1);
-  $sandbox['current']++;
+
+  $results = islandora_batch_derivative_trigger_get_member_objects($collection, $content_model, $sandbox['slice'], 1);
+  // If nothing came back, we're done.
+  if (empty($results)) {
+    $context['finished'] = 1;
+  }
   foreach ($results as $result) {
-    $child = islandora_object_load($result);
+    $sandbox['current']++;
+    $sandbox['slice'] = array(
+      'date' => $result['created']['value'],
+      'pid' => $result['object']['value'],
+    );
+    $child = islandora_object_load($result['created']['value']);
+    $source_info = array(
+      '@model' => $content_model,
+      '@collection' => $collection,
+    );
+    $source_string = is_null($collection) ? t('type: @model', $source_info) : t('type: @model, collection: @collection', $source_info);
     if ($child) {
       foreach ($dsids as $dsid) {
         $logs = islandora_do_derivatives($child, array(
@@ -164,14 +194,18 @@ function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_ope
           }
         }
       }
-      $context['message'] = t('@current_num/@total: Regenerated selected derivatives for @pid (type: @cmodel@source).', array(
+      $context['message'] = t('@current_num/@total: Regenerated selected derivatives for @pid (@source).', array(
         '@current_num' => $sandbox['current'],
         '@total' => $sandbox['total_count'],
-        '@cmodel' => $child->models[0],
-        '@source' => (is_null($collection)) ? '' : ", source: {$collection->label}",
+        '@source' => $source_string,
         '@pid' => $child->id,
       ));
     }
+    $context['message'] = t('@current_num/@total: Failed to load child @pid (@source).', array(
+      '@current_num' => $sandbox['current'],
+      '@total' => $sandbox['total_count'],
+      '@pid' => $result['object']['value'],
+      '@source' => $source_string,
   }
 
   $context['finished'] = $sandbox['current'] / $sandbox['total_count'];
@@ -383,57 +417,4 @@ function islandora_batch_derivative_trigger_regenerate_dc_metadata(AbstractObjec
     '@child' => $child->id,
     '@source' => $source,
   ));
-}
-
-/**
- * Queries objects to regenerate.
- *
- * @param AbstractObject|null $collection
- *   A possible collection to filter by.
- * @param array|null $cmodels
- *   Possible content models to filter by.
- * @param int $offset
- *   An offset to start at.
- * @param int $limit
- *   A limit to set.
- * @param bool $count
- *   Whether or not this is a countQuery.
- */
-function islandora_batch_derivative_trigger_query_relevant_objects($collection, $cmodels, $offset, $limit, $count = FALSE) {
-  $q = <<<EOQ
-SELECT DISTINCT ?pid
-FROM <#ri>
-WHERE {
-EOQ;
-  if (!is_null($collection)) {
-    $q .= "\n ?pid <fedora-rels-ext:isMemberOfCollection> <info:fedora/{$collection->id}> ;\n";
-  }
-  $cmodels = (array) $cmodels;
-  $first_cmodel = array_shift($cmodels);
-  if (!is_null($first_cmodel)) {
-    $q .= " { ?pid <fedora-model:hasModel> <info:fedora/$first_cmodel> }";
-    foreach ((array) $cmodels as $cmodel) {
-      $q .= " UNION { ?pid <fedora-model:hasModel> <info:fedora/$cmodel> }";
-    }
-  }
-  $q .= "\n}";
-  if (!is_null($offset)) {
-    $q .= "\nOFFSET $offset";
-  }
-  if (!is_null($limit)) {
-    $q .= "\nLIMIT $limit";
-  }
-
-  $connection = islandora_get_tuque_connection();
-  if (!$count) {
-    $objects = array();
-    $results = $connection->repository->ri->sparqlQuery($q);
-    foreach ($results as $result) {
-      $objects[] = $result['pid']['value'];
-    }
-  }
-  else {
-    $objects = $connection->repository->ri->countQuery($q, 'sparql');
-  }
-  return $objects;
 }
