@@ -71,7 +71,7 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_batch($childr
       'operations' => array(),
     );
     foreach ((array) $content_models as $content_model) {
-      $operations[] = array(
+      $batch['operations'][] = array(
         'islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation',
         array($dsids, $collection, $content_model, $force),
       );
@@ -170,7 +170,7 @@ function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_ope
       'date' => $result['created']['value'],
       'pid' => $result['object']['value'],
     );
-    $child = islandora_object_load($result['created']['value']);
+    $child = islandora_object_load($result['object']['value']);
     $source_info = array(
       '@model' => $content_model,
       '@collection' => $collection,
@@ -201,11 +201,14 @@ function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_ope
         '@pid' => $child->id,
       ));
     }
-    $context['message'] = t('@current_num/@total: Failed to load child @pid (@source).', array(
-      '@current_num' => $sandbox['current'],
-      '@total' => $sandbox['total_count'],
-      '@pid' => $result['object']['value'],
-      '@source' => $source_string,
+    else {
+      $context['message'] = t('@current_num/@total: Failed to load child @pid (@source).', array(
+        '@current_num' => $sandbox['current'],
+        '@total' => $sandbox['total_count'],
+        '@pid' => $result['object']['value'],
+        '@source' => $source_string,
+      ));
+    }
   }
 
   $context['finished'] = $sandbox['current'] / $sandbox['total_count'];
