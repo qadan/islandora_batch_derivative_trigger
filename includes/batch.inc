@@ -27,12 +27,14 @@ function islandora_batch_derivative_trigger_derivative_regeneration_batch_finish
  * Generates a batch for regenerating derivatives.
  *
  * @param string[]|null $children
- *   An array of child PIDs to regenerate derivatives for, or NULL to run
+ *   An array of child PIDs to regenerate derivatives for, or NULL if using
+ *   $collection.
  * @param string[] $dsids
  *   An array of DSIDs representing the derivative destination DSIDs that should
- *   be generated.
+ *   be generated, or NULL to run for all.
  * @param AbstractObject $collection
- *   The collection we are generating derivatives for.
+ *   The collection we are generating derivatives for, or NULL if using
+ *   $children.
  * @param array|string $content_models
  *   The content model to use in the case of a call to 'regenerate all'.
  *
@@ -85,20 +87,32 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_batch($childr
  *
  * @param string $child
  *   The child to perform the regeneration for.
- * @param string[] $dsids
- *   The DSIDs to regenerate on the child.
+ * @param string[]|null $dsids
+ *   The DSIDs to regenerate on the child, or NULL to run all.
  * @param array $context
  *   The batch context.
  */
-function islandora_batch_derivative_trigger_regenerate_derivatives_batch_operation($child, array $dsids, $force, &$context) {
+function islandora_batch_derivative_trigger_regenerate_derivatives_batch_operation($child, $dsids, $force, &$context) {
   module_load_include('inc', 'islandora', 'includes/derivatives');
   if (!isset($context['sandbox']['progress'])) {
     $context['sandbox']['progress'] = 0;
-    $context['sandbox']['total'] = count($dsids);
+    $child = islandora_object_load($child);
+    if (!is_array($dsids)) {
+      $appropriate_models = array_diff($child->models, array('fedora-system:FedoraObject-3.0'));
+      $context['sandbox']['to_generate'] = array_keys(islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list(reset($appropriate_models)));
+    }
+    else {
+      $context['sandbox']['to_generate'] = $dsids;
+    }
+    $context['sandbox']['total'] = count($context['sandbox']['to_generate']);
+    if (!$context['sandbox']['total']) {
+      $context['message'] = t('No DSIDs to regenerate derivatives for.');
+      $context['finished'] = 1;
+      return;
+    }
   }
-  $child = islandora_object_load($child);
   if ($child) {
-    foreach ($dsids as $dsid) {
+    foreach ($context['sandbox']['to_generate'] as $dsid) {
       $logs = islandora_do_derivatives($child, array(
         'force' => $force,
         'destination_dsid' => $dsid,
@@ -127,7 +141,7 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_batch_operati
 /**
  * Regenerates derivatives for all children in the collection.
  *
- * @param array $dsids
+ * @param string[]|null $dsids
  *   The DSIDs to regenerate derivatives for.
  * @param AbstractObject $collection
  *   The collection we are regenerating child derivatives in.
@@ -136,7 +150,7 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_batch_operati
  * @param array $context
  *   The batch context.
  */
-function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation(array $dsids, $collection, $content_model, $force, &$context) {
+function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_operation($dsids, $collection, $content_model, $force, &$context) {
   module_load_include('inc', 'islandora', 'includes/derivatives');
   module_load_include('inc', 'islandora_batch_derivative_trigger', 'includes/utilities');
   $sandbox = &$context['sandbox'];
@@ -177,7 +191,14 @@ function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_ope
     );
     $source_string = is_null($collection) ? t('type: @model', $source_info) : t('type: @model, collection: @collection', $source_info);
     if ($child) {
-      foreach ($dsids as $dsid) {
+      if (!is_array($dsids)) {
+        $appropriate_models = array_diff($child->models, array('fedora-system:FedoraObject-3.0'));
+        $to_generate = array_keys(islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list(reset($appropriate_models)));
+      }
+      else {
+        $to_generate = $dsids;
+      }
+      foreach ($to_generate as $dsid) {
         $logs = islandora_do_derivatives($child, array(
           'force' => $force,
           'destination_dsid' => $dsid,

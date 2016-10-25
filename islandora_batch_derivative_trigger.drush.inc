@@ -136,8 +136,7 @@ function drush_islandora_batch_derivative_trigger_regenerate_derivatives() {
   }
   module_load_include('inc', 'islandora_batch_derivative_trigger', 'includes/batch');
   $dsids = islandora_batch_derivative_trigger_get_option_array_or_null(drush_get_option('dsids'));
-  batch_set(islandora_batch_derivative_trigger_regenerate_derivatives_batch($batch_info['pids'], $dsids, $batch_info['collection'], $batch_info['content_models'], $force));
-  if (!is_array($dsids)) {
+  if (!is_array($dsids) && is_array($batch_info['content_models'])) {
     $dsids = array();
     foreach ($batch_info['content_models'] as $content_model) {
       $dsids += array_keys(islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list($content_model));
