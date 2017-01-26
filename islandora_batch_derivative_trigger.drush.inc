@@ -121,6 +121,10 @@ function islandora_batch_derivative_trigger_get_basic_batch_info() {
     drush_set_error('regenerate_derivatives', dt('No collection or PIDs were passed in.'));
     return FALSE;
   }
+  else {
+    $return['collection'] = NULL;
+    $return['content_models'] = NULL;
+  }
   return $return;
 }
 
