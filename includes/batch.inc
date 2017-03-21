@@ -99,7 +99,7 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_batch_operati
     $child = islandora_object_load($child);
     if (!is_array($dsids)) {
       $appropriate_models = array_diff($child->models, array('fedora-system:FedoraObject-3.0'));
-      $context['sandbox']['to_generate'] = array_keys(islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list(reset($appropriate_models), $child));
+      $context['sandbox']['to_generate'] = array_keys(islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list(reset($appropriate_models), array($child)));
     }
     else {
       $context['sandbox']['to_generate'] = $dsids;
@@ -193,7 +193,7 @@ function islandora_batch_derivative_trigger_regenerate_all_derivatives_batch_ope
     if ($child) {
       if (!is_array($dsids)) {
         $appropriate_models = array_diff($child->models, array('fedora-system:FedoraObject-3.0'));
-        $to_generate = array_keys(islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list(reset($appropriate_models), $child));
+        $to_generate = array_keys(islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list(reset($appropriate_models), array($child)));
       }
       else {
         $to_generate = $dsids;
