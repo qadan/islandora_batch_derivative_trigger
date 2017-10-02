@@ -35,6 +35,10 @@ function islandora_batch_derivative_trigger_drush_command() {
           'description' => dt('Whether or not to force generation for every derivative, even if it already exists on the object; defaults to "false", and pretty much any value given here will set it as "true".'),
           'required' => FALSE,
         ),
+        'infile' => array(
+          'description' => dt('use if you have lots of pids in a csv.'),
+          'required' => FALSE,
+        ),
       ),
       'examples' => array(
         'Regenerate all derivatives for specified objects' => 'drush deriv-regen --pids=islandora:1,islandora:2,islandora:3',
@@ -93,10 +97,18 @@ function islandora_batch_derivative_trigger_drush_command() {
  */
 function islandora_batch_derivative_trigger_get_basic_batch_info() {
   $return = array();
-  $collection = drush_get_option('collection');
-  $pids = islandora_batch_derivative_trigger_get_option_array_or_null(drush_get_option('pids'));
-  $content_models = islandora_batch_derivative_trigger_get_option_array_or_null(drush_get_option('content_models'));
-  $return['pids'] = $pids;
+  $infile = drush_get_option('infile');
+  if($infile){
+    $list = file_get_contents($infile);
+    $pids = islandora_batch_derivative_trigger_get_option_array_or_null($list);
+    $return['pids'] = $pids;
+  } 
+  else{
+    $collection = drush_get_option('collection');
+    $pids = islandora_batch_derivative_trigger_get_option_array_or_null(drush_get_option('pids'));
+    $content_models = islandora_batch_derivative_trigger_get_option_array_or_null(drush_get_option('content_models'));
+    $return['pids'] = $pids;
+  }
   if (!is_null($collection)) {
     $collection = islandora_object_load($collection);
     if (!$collection) {
@@ -134,6 +146,15 @@ function islandora_batch_derivative_trigger_get_basic_batch_info() {
 function drush_islandora_batch_derivative_trigger_regenerate_derivatives() {
   $force = drush_get_option('force');
   $force = is_null($force) ? FALSE : TRUE;
+  $infile = drush_get_option('infile');
+  $pids = drush_get_option('pids');
+  if($infile && $pids){
+    throw new Exception("'pids' and 'infile' are mutually exclusive options.");
+  }
+  if($infile){
+    $list = file_get_contents($infile);
+    $pids = explode(',',$list);
+  }
   $batch_info = islandora_batch_derivative_trigger_get_basic_batch_info();
   if (!$batch_info) {
     return;
