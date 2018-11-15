@@ -143,7 +143,7 @@ function drush_islandora_batch_derivative_trigger_regenerate_derivatives() {
   if (!is_array($dsids) && is_array($batch_info['content_models'])) {
     $dsids = array();
     foreach ($batch_info['content_models'] as $content_model) {
-      $dsids += array_keys(islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list($content_model, array()));
+      $dsids += array_keys(islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list($content_model, array($batch_info['collection'])));
     }
     $dsids = array_unique($dsids);
   }
