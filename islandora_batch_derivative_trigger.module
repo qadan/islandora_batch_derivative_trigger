@@ -76,7 +76,7 @@ function islandora_batch_derivative_trigger_regenerate_derivatives_form(array $f
         '#header' => array(
           'dsid' => t('DSID'),
         ),
-        '#options' => islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list($content_model, array()),
+        '#options' => islandora_batch_derivative_trigger_regenerate_derivatives_form_get_derivatives_list($content_model, array($collection)),
         '#empty' => t('No derivative DSIDs for the selected content model.'),
       ),
       'children' => islandora_batch_derivative_trigger_get_children_select_table_form_element_with_content_model($collection, array(
