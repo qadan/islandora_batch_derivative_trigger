@@ -119,7 +119,7 @@ function islandora_batch_derivative_trigger_update_regenerate_derivatives_list(a
  *
  * @param string $content_model
  *   The content model to retrieve derivatives for.
- * @param array args
+ * @param array $args
  *   An array of arguments to pass onto the hook invocation.
  *
  * @return array
