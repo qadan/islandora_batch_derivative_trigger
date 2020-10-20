@@ -415,7 +415,7 @@ function islandora_batch_derivative_trigger_regenerate_dc_metadata(AbstractObjec
       ->fetchField();
     $source = db_select('xml_form_builder_default_xslts', 'xd')
       ->fields('xd', array('dsid'))
-      ->condition('xslt_id', $xslt_id, '=')
+      ->condition('id', $mapping, '=')
       ->execute()
       ->fetchField();
     $xslt = new DOMDocument();
